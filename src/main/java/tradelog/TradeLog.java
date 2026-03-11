@@ -1,8 +1,8 @@
-package seedu.duke;
+package tradelog;
 
 import java.util.Scanner;
 
-public class Duke {
+public class TradeLog {
     /**
      * Main entry-point for the java.duke.Duke application.
      */
