@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class ArgumentTokeniser {
     /**
      * Scans the user input and extracts the values associated with each specified prefix.
-     * * @param userInput The raw string of arguments (e.g., "t/AAPL d/2026-03-17 dir/long")
+     * @param userInput The raw string of arguments (e.g., "t/AAPL d/2026-03-17 dir/long")
      * @param prefixes An array of prefixes to look for (e.g., {"t/", "d/", "dir/"})
      * @return A HashMap where the key is the prefix, and the value is the extracted string.
      */
