@@ -1,5 +1,8 @@
 package tradelog;
 
+import java.util.Scanner;
+
+import tradelog.logic.command.ListCommand;
 import tradelog.model.TradeList;
 import tradelog.storage.Storage;
 import tradelog.ui.Ui;
@@ -23,7 +26,13 @@ public class TradeLog {
     /** Starts the main input loop. */
     public void run() {
         ui.showWelcome();
-        // main loop to be expanded by teammates (Parser, commands, etc.)
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNextLine()) {
+            String input = scanner.nextLine().trim();
+            if (input.equals("list")) {
+                new ListCommand().execute(tradeList, ui, storage);
+            }
+        }
     }
 
     /**
