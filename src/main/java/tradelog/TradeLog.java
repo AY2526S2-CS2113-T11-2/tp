@@ -1,21 +1,39 @@
 package tradelog;
 
-import java.util.Scanner;
+import tradelog.logic.command.Command;
+import tradelog.logic.command.ListCommand;
+import tradelog.model.TradeList;
+import tradelog.storage.Storage;
+import tradelog.ui.Ui;
 
+/**
+ * Main entry point for the TradeLog application.
+ */
 public class TradeLog {
+
+    private final TradeList tradeList;
+    private final Ui ui;
+    private final Storage storage;
+
+    /** Constructs a TradeLog instance with fresh data structures. */
+    public TradeLog() {
+        tradeList = new TradeList();
+        ui = new Ui();
+        storage = new Storage();
+    }
+
+    /** Starts the main input loop. */
+    public void run() {
+        ui.showWelcome();
+        // main loop to be expanded by teammates (Parser, commands, etc.)
+    }
+
     /**
-     * Main entry-point for the java.duke.Duke application.
+     * Main entry point.
+     *
+     * @param args Command-line arguments (not used).
      */
     public static void main(String[] args) {
-        String logo = " ____        _        \n"
-                + "|  _ \\ _   _| | _____ \n"
-                + "| | | | | | | |/ / _ \\\n"
-                + "| |_| | |_| |   <  __/\n"
-                + "|____/ \\__,_|_|\\_\\___|\n";
-        System.out.println("Hello from\n" + logo);
-        System.out.println("What is your name?");
-
-        Scanner in = new Scanner(System.in);
-        System.out.println("Hello " + in.nextLine());
+        new TradeLog().run();
     }
 }
