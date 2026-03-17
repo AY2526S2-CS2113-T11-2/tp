@@ -2,8 +2,9 @@ package tradelog.logic.parser;
 
 import java.util.HashMap;
 
-// A utility class whose sole job is to scan a string like add t/AAPL d/2026-02-18 and
-// split it into a map of prefixes and their values.
+/**
+ * Utility class for tokenising user input strings into mapped arguments based on specific prefixes.
+ */
 public class ArgumentTokeniser {
     /**
      * Scans the user input and extracts the values associated with each specified prefix.
@@ -21,21 +22,18 @@ public class ArgumentTokeniser {
             String prefixWithSpace = " " + prefix;
             int startIndex = paddedInput.indexOf(prefixWithSpace);
 
-            // If the prefix exists in the string
             if (startIndex != -1) {
-                // Move the start index to the end of the prefix (where the actual value begins)
                 startIndex += prefixWithSpace.length();
-                // By default, assume this argument goes all the way to the end of the string
                 int endIndex = paddedInput.length();
-                // Check if another prefix interrupts this one
+
                 for (String otherPrefix : prefixes) {
                     if (otherPrefix.equals(prefix)) {
                         continue;
                     }
 
-                    int otherIndex = paddedInput.indexOf(" " + otherPrefix);
+                    int otherIndex = paddedInput.indexOf(" " + otherPrefix, startIndex);
                     // If another prefix is found AFTER our current prefix, cut the string there
-                    if (otherIndex > startIndex && otherIndex < endIndex) {
+                    if (otherIndex != -1 && otherIndex < endIndex) {
                         endIndex = otherIndex;
                     }
                 }
