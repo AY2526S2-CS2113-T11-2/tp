@@ -1,9 +1,5 @@
 package tradelog.logic.command;
 
-<<<<<<< HEAD:src/main/java/tradelog/logic/command/CommandListing.java
-// Tells the UI to print all trades.
-public class CommandListing {
-=======
 import tradelog.model.TradeList;
 import tradelog.storage.Storage;
 import tradelog.ui.Ui;
@@ -12,7 +8,7 @@ import tradelog.ui.Ui;
  * Command to display all logged trades.
  * Corresponds to the user command: {@code list}
  */
-public class ListCommand extends Command {
+public class CommandListing extends Command {
 
     /**
      * Executes the list command by printing all trades via the UI.
@@ -25,5 +21,4 @@ public class ListCommand extends Command {
     public void execute(TradeList tradeList, Ui ui, Storage storage) {
         ui.printTradeList(tradeList);
     }
->>>>>>> 7d171066f59a9f887c4c191007ee068dc04ea1eb:src/main/java/tradelog/logic/command/ListCommand.java
 }
