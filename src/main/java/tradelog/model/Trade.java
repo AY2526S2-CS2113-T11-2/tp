@@ -33,7 +33,7 @@ public class Trade {
         this.direction = direction;
         this.entryPrice = entryPrice;
         this.exitPrice = exitPrice;
-        this.stopLossPrice = this.stopLossPrice;
+        this.stopLossPrice = stopLossPrice;
         this.outcome = outcome;
         this.strategy = strategy;
     }
