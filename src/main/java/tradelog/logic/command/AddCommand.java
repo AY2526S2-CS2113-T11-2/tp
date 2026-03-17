@@ -14,6 +14,7 @@ import tradelog.ui.Ui;
  */
 public class AddCommand extends Command{
     private final HashMap<String, String> parsedArgs;
+    private static final String[] REQUIRED_PREFIXES = {"t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"};
 
     /**
      * Constructs an AddCommand by parsing and validating the raw arguments string.
@@ -23,10 +24,9 @@ public class AddCommand extends Command{
      * @throws TradeLogException If any required prefix is missing or blank.
      */
     public AddCommand(String arguments) throws TradeLogException {
-        String[] addPrefixes = {"t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"};
-        parsedArgs = ArgumentTokeniser.tokenise(arguments, addPrefixes);
+        parsedArgs = ArgumentTokeniser.tokenise(arguments, REQUIRED_PREFIXES);
 
-        for (String prefix : addPrefixes){
+        for (String prefix : REQUIRED_PREFIXES){
             if (!parsedArgs.containsKey(prefix)){
                 throw new TradeLogException("Missing required prefix: " + prefix);
             }

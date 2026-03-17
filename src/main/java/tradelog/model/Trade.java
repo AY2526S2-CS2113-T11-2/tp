@@ -10,7 +10,7 @@ public class Trade {
     private String direction;
     private double entryPrice;
     private double exitPrice;
-    private double stopLoss;
+    private double stopLossPrice;
     private String outcome;
     private String strategy;
 
@@ -22,18 +22,18 @@ public class Trade {
      * @param direction  The direction of the trade (Long or Short).
      * @param entryPrice The price at which the trade was entered.
      * @param exitPrice  The price at which the trade was exited.
-     * @param stopLoss   The stop loss price set for the trade.
+     * @param stopLossPrice   The stop loss price set for the trade.
      * @param outcome    The outcome of the trade (Win or Loss).
      * @param strategy   The strategy used for the trade.
      */
     public Trade(String ticker, String date, String direction, double entryPrice,
-                 double exitPrice, double stopLoss, String outcome, String strategy) {
+                 double exitPrice, double stopLossPrice, String outcome, String strategy) {
         this.ticker = ticker;
         this.date = date;
         this.direction = direction;
         this.entryPrice = entryPrice;
         this.exitPrice = exitPrice;
-        this.stopLoss = stopLoss;
+        this.stopLossPrice = this.stopLossPrice;
         this.outcome = outcome;
         this.strategy = strategy;
     }
@@ -46,7 +46,7 @@ public class Trade {
      * @return The calculated Risk:Reward ratio, or 0 if risk is zero.
      */
     public double getRiskRewardRatio() {
-        double risk = Math.abs(entryPrice - stopLoss);
+        double risk = Math.abs(entryPrice - stopLossPrice);
         if (risk == 0) {
             return 0; // Prevent division by zero if stop loss equals entry
         }
@@ -91,7 +91,7 @@ public class Trade {
                 "Direction: " + direction + "\n" +
                 "Entry: " + formatPrice(entryPrice) + "\n" +
                 "Exit: " + formatPrice(exitPrice) + "\n" +
-                "Stop: " + formatPrice(stopLoss) + "\n" +
+                "Stop: " + formatPrice(stopLossPrice) + "\n" +
                 "Strategy: " + strategy + "\n\n" +
                 String.format("Risk:Reward: %s%.2fR", sign, rr);
     }
