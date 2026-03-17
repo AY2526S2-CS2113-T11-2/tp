@@ -10,7 +10,7 @@ public class Trade {
     private String direction;
     private double entryPrice;
     private double exitPrice;
-    private double stopLoss;
+    private double stopLossPrice; 
     private String outcome;
     private String strategy;
 
