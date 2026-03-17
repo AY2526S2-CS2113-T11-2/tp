@@ -17,15 +17,16 @@ public class EditCommand extends Command {
 
     /** All possible prefixes that can be used for editing. */
     private static final String[] ACCEPTED_PREFIXES = {
-            "t/",
-            "d/",
-            "dir/",
-            "e/",
-            "x/",
-            "s/",
-            "o/",
-            "strat/"
+        "t/",
+        "d/",
+        "dir/",
+        "e/",
+        "x/",
+        "s/",
+        "o/",
+        "strat/"
     };
+
 
     private final int targetIndex;
     private final Map<String, String> parsedArgs;
