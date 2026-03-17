@@ -23,7 +23,9 @@ public class AddCommand extends Command{
      * @throws TradeLogException If any required prefix is missing or blank.
      */
     public AddCommand(String arguments) throws TradeLogException {
-        String[] addPrefixes = {"t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"};
+        private static final String[] REQUIRED_PREFIXES = {
+             "t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"
+         };
         parsedArgs = ArgumentTokeniser.tokenise(arguments, addPrefixes);
 
         for (String prefix : addPrefixes){
