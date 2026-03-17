@@ -14,8 +14,9 @@ import tradelog.ui.Ui;
  */
 public class AddCommand extends Command{
     private final HashMap<String, String> parsedArgs;
-    private static final String[] REQUIRED_PREFIXES = {"t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"};
-
+    private static final String[] REQUIRED_PREFIXES = {
+            "t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"
+    };
     /**
      * Constructs an AddCommand by parsing and validating the raw arguments string.
      * Strictly checks that all required prefixes are present and not empty.
