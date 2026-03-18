@@ -76,15 +76,25 @@ public class EditCommand extends Command {
                 tradeToEdit.setDate(parsedArgs.get("d/"));
             }
             if (parsedArgs.containsKey("dir/")) {
+                ParserUtil.validateStopLoss(parsedArgs.get("dir/").trim().toLowerCase(),
+                        tradeToEdit.getEntryPrice(), tradeToEdit.getStopLossPrice());
                 tradeToEdit.setDirection(ParserUtil.parseDirection(parsedArgs.get("dir/")));
             }
             if (parsedArgs.containsKey("e/")) {
+                ParserUtil.validatePrices(ParserUtil.parsePrice(parsedArgs.get("e/"), "Entry"), 
+                        tradeToEdit.getStopLossPrice());
+                ParserUtil.validateStopLoss(tradeToEdit.getDirection().trim().toLowerCase(),
+                        ParserUtil.parsePrice(parsedArgs.get("e/"), "Entry"), tradeToEdit.getStopLossPrice());
                 tradeToEdit.setEntryPrice(ParserUtil.parsePrice(parsedArgs.get("e/"), "Entry"));
             }
             if (parsedArgs.containsKey("x/")) {
+                ParserUtil.validatePrices(tradeToEdit.getEntryPrice(), ParserUtil.parsePrice(parsedArgs.get("x/"), 
+                        "Exit"));
                 tradeToEdit.setExitPrice(ParserUtil.parsePrice(parsedArgs.get("x/"), "Exit"));
             }
             if (parsedArgs.containsKey("s/")) {
+                ParserUtil.validateStopLoss(tradeToEdit.getDirection().trim().toLowerCase(),
+                        tradeToEdit.getEntryPrice(), ParserUtil.parsePrice(parsedArgs.get("s/"), "Stop Loss"));
                 tradeToEdit.setStopLossPrice(ParserUtil.parsePrice(parsedArgs.get("s/"), "Stop Loss"));
             }
             if (parsedArgs.containsKey("o/")) {
@@ -93,6 +103,7 @@ public class EditCommand extends Command {
             if (parsedArgs.containsKey("strat/")) {
                 tradeToEdit.setStrategy(parsedArgs.get("strat/"));
             }
+
             ui.showTradeUpdated(targetIndex + 1);
             ui.printTrade(tradeToEdit);
         } catch (TradeLogException e) {
