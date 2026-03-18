@@ -63,6 +63,11 @@ public class AddCommand extends Command{
         String strategy = parsedArgs.get("strat/").trim();
 
         this.addTrade = new Trade(ticker, date, direction, entryPrice, exitPrice, stopLossPrice, outcome, strategy);
+        
+        // Invariant: addTrade should be properly initialized
+        assert addTrade != null : "Trade object should not be null";
+        assert addTrade.getTicker().equals(ticker) : "Ticker should match parsed value";
+        assert addTrade.getEntryPrice() == entryPrice : "Entry price should match parsed value";
     }
 
     /**
@@ -75,7 +80,17 @@ public class AddCommand extends Command{
      */
     @Override
     public void execute(TradeList tradeList, Ui ui, Storage storage) {
+        int initialSize = tradeList.size();
+        
         tradeList.addTrade(addTrade);
+
+        // Invariant: TradeList size should increase by 1
+        assert tradeList.size() == initialSize + 1 : "TradeList size should increase by 1 after adding";
+        
+        // Invariant: The last trade should be the one just added
+        Trade lastTrade = tradeList.getTrade(tradeList.size() - 1);
+        assert lastTrade.getTicker().equals(addTrade.getTicker()) : "Last trade ticker should match added trade";
+        assert lastTrade.getEntryPrice() == addTrade.getEntryPrice() : "Last trade entry price should match added trade";
 
         ui.showLine();
         System.out.println("Trade successfully added.");
