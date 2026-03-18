@@ -46,7 +46,20 @@ public class Trade {
      * @return The calculated Risk:Reward ratio, or 0 if risk is zero.
      */
     public double getRiskRewardRatio() {
+        // Invariant: Direction must be either "Long" or "Short"
+        assert direction.equalsIgnoreCase("Long") || direction.equalsIgnoreCase("Short") :
+                "Direction must be 'Long' or 'Short'";
+        // Invariant: Prices must be valid numbers
+        assert !Double.isNaN(entryPrice) && !Double.isInfinite(entryPrice) :
+                "Entry price cannot be NaN or infinite";
+        assert !Double.isNaN(exitPrice) && !Double.isInfinite(exitPrice) :
+                "Exit price cannot be NaN or infinite";
+        assert !Double.isNaN(stopLossPrice) && !Double.isInfinite(stopLossPrice) :
+                "Stop loss price cannot be NaN or infinite";
+
         double risk = Math.abs(entryPrice - stopLossPrice);
+        // Invariant: Risk must be non-negative
+        assert risk >= 0 : "Risk cannot be negative";
         if (risk == 0) {
             return 0; // Prevent division by zero if stop loss equals entry
         }
@@ -54,11 +67,19 @@ public class Trade {
         double reward;
         if (direction.equalsIgnoreCase("short")) {
             reward = entryPrice - exitPrice;
+            // Invariant: Reward must be a finite number
+            assert !Double.isNaN(reward) && !Double.isInfinite(reward) : "Reward cannot be NaN or infinite";
         } else {
             reward = exitPrice - entryPrice;
+            // Invariant: Risk must be a finite number
+            assert !Double.isNaN(risk) && !Double.isInfinite(risk) : "Risk cannot be NaN or infinite";
         }
-
-        return reward / risk;
+        
+        double riskRewardRatio = reward / risk;
+        // Invariant: Risk:Reward ratio must be a finite number
+        assert !Double.isNaN(riskRewardRatio) && !Double.isInfinite(riskRewardRatio) :
+                "Risk:Reward ratio cannot be NaN or infinite";
+        return riskRewardRatio;
     }
 
     /**
@@ -68,6 +89,8 @@ public class Trade {
      * @return The formatted price string (e.g., "180" instead of "180.0").
      */
     private String formatPrice(double price) {
+        // Invariant: Price must be a finite number
+        assert !Double.isNaN(price) && !Double.isInfinite(price) : "Price cannot be NaN or infinite";
         if (price == (long) price) {
             return String.format("%d", (long) price);
         } else {
