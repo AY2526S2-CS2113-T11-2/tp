@@ -33,7 +33,7 @@ application {
 }
 
 shadowJar {
-    archiveBaseName.set("duke")
+    archiveBaseName.set("TradeLog")
     archiveClassifier.set("")
 }
 
