@@ -54,6 +54,12 @@ public class AddCommand extends Command {
 
         String ticker = parsedArgs.get("t/").trim().toUpperCase();
         String rawDir = parsedArgs.get("dir/").trim().toLowerCase();
+        if (rawDir.equals("long") && stopLossPrice > entryPrice) {
+            throw new TradeLogException("Invalid Trade: For a Long position, Stop Loss must be below Entry Price.");
+        }
+        if (rawDir.equals("short") && stopLossPrice < entryPrice) {
+            throw new TradeLogException("Invalid Trade: For a Short position, Stop Loss must be above Entry Price.");
+        }
         if (!rawDir.equals("long") && !rawDir.equals("short")) {
             throw new TradeLogException("Direction must be exactly 'long' or 'short'!");
         }
