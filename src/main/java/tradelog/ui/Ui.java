@@ -15,6 +15,13 @@ public class Ui {
         showLine();
     }
 
+    /** Prints the goodbye message shown when exiting the app. */
+    public void showGoodbye() {
+        showLine();
+        System.out.println("Goodbye! May your profits be high and your losses small.");
+        showLine();
+    }
+
     /** Prints a horizontal divider line. */
     public void showLine() {
         System.out.println("-".repeat(80));
