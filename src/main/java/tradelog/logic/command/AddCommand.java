@@ -46,7 +46,7 @@ public class AddCommand extends Command{
             throw new TradeLogException("Entry, Exit, and Stop Loss must be valid numbers!");
         }
 
-        if (entryPrice == exitPrice) {
+        if (entryPrice == stopLossPrice) {
             throw new  TradeLogException("Entry price and stop loss price cannot have the same value.");
         }
 
