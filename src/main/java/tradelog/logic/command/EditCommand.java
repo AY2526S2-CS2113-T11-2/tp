@@ -58,6 +58,9 @@ public class EditCommand extends Command {
         if (parsedArgs.isEmpty()) {
             throw new TradeLogException("At least one field must be specified to edit.");
         }
+        
+        // Invariant: targetIndex should be valid after parsing
+        assert targetIndex >= 0 : "Trade index must be non-negative";
     }
 
     /**
@@ -76,10 +79,17 @@ public class EditCommand extends Command {
             }
 
             Trade tradeToEdit = tradeList.getTrade(targetIndex);
+            
+            // Invariant: Retrieved trade should not be null
+            assert tradeToEdit != null : "Retrieved trade should not be null";
+            // Invariant: targetIndex should be within valid bounds
+            assert targetIndex >= 0 && targetIndex < tradeList.size() : "Trade index must be within bounds";
 
             // Update only specified fields
             if (parsedArgs.containsKey("t/")) {
                 tradeToEdit.setTicker(parsedArgs.get("t/").toUpperCase());
+                // Invariant: Ticker should be updated
+                assert tradeToEdit.getTicker().equals(parsedArgs.get("t/").toUpperCase()) : "Ticker should be updated";
             }
             if (parsedArgs.containsKey("d/")) {
                 tradeToEdit.setDate(parsedArgs.get("d/"));
