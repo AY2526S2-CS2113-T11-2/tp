@@ -96,6 +96,23 @@ public class Trade {
                 String.format("Risk:Reward: %s%.2fR", sign, rr);
     }
 
+    /**
+     * Formats the trade details into a string suitable for storage in a text file.
+     * Fields are separated by " | " to allow for easy parsing when loading from storage.
+     * 
+     * @return The formatted storage string.
+     */
+    public String toStorageString() {
+        return ticker + " | " +
+                date + " | " +
+                direction + " | " +
+                entryPrice + " | " +
+                exitPrice + " | " +
+                stopLossPrice + " | " +
+                outcome + " | " +
+                strategy;
+    }
+  
     public void setTicker(String ticker) {
         this.ticker = ticker;
     }

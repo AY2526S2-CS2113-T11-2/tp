@@ -22,14 +22,14 @@ class TradeLogTest {
     @Test
     public void run_onStart_showsWelcomeMessage() {
         System.setIn(new ByteArrayInputStream("".getBytes()));
-        String output = captureOutput(() -> new TradeLog().run());
+        String output = captureOutput(() -> new TradeLog("./data/trades.txt").run());
         assertTrue(output.contains("Welcome to TradeLog!"));
     }
 
     @Test
     public void run_listCommand_showsEmptyMessage() {
         System.setIn(new ByteArrayInputStream("list\n".getBytes()));
-        String output = captureOutput(() -> new TradeLog().run());
+        String output = captureOutput(() -> new TradeLog("./data/trades.txt").run());
         assertTrue(output.contains("No trades logged yet."));
     }
 }

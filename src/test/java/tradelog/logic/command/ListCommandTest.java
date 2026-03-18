@@ -26,7 +26,7 @@ class ListCommandTest {
     public void execute_emptyTradeList_showsEmptyMessage() {
         TradeList tradeList = new TradeList();
         Ui ui = new Ui();
-        Storage storage = new Storage();
+        Storage storage = new Storage("./data/trades.txt");
         ListCommand command = new ListCommand();
         String output = captureOutput(() -> command.execute(tradeList, ui, storage));
         assertTrue(output.contains("No trades logged yet."));
