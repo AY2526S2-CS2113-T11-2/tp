@@ -1,24 +1,26 @@
 package tradelog.logic.command;
 
 import tradelog.model.TradeList;
-import tradelog.storage.Storage;
 import tradelog.ui.Ui;
+import tradelog.storage.Storage;
 
 /**
- * Command to display all logged trades.
- * Corresponds to the user command: {@code list}
+ * Represents a command entity for the listing of trades.
+ * This class triggers the display logic within the UI to show all logged trades
+ * to the user in a formatted, numbered list.
  */
 public class ListCommand extends Command {
 
     /**
-     * Executes the list command by printing all trades via the UI.
+     * Executes the listing command by delegating the display of the current
+     * trade log to the UI handler.
      *
-     * @param tradeList The current list of trades.
-     * @param ui        The UI handler used to print the trade list.
-     * @param storage   Not used by this command.
+     * @param trades  The list of trades to be displayed.
+     * @param ui      The user interface handler responsible for formatting the output.
+     * @param storage The storage handler (unused in this specific command).
      */
     @Override
-    public void execute(TradeList tradeList, Ui ui, Storage storage) {
-        ui.printTradeList(tradeList);
+    public void execute(TradeList trades, Ui ui, Storage storage) {
+        ui.printTradeList(trades);
     }
 }

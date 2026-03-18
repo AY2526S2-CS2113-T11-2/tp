@@ -79,15 +79,14 @@ public class EditCommand extends Command {
 
             // Update only specified fields
             if (parsedArgs.containsKey("t/")) {
-                tradeToEdit.setTicker(parsedArgs.get("t/").toUpperCase());
+                tradeToEdit.setTicker(parsedArgs.get("t/"));
             }
             if (parsedArgs.containsKey("d/")) {
                 tradeToEdit.setDate(parsedArgs.get("d/"));
             }
             if (parsedArgs.containsKey("dir/")) {
                 String rawDir = parsedArgs.get("dir/");
-                String direction = rawDir.substring(0, 1).toUpperCase() + rawDir.substring(1).toLowerCase();
-                tradeToEdit.setDirection(direction);
+                tradeToEdit.setDirection(rawDir);
             }
             if (parsedArgs.containsKey("e/")) {
                 tradeToEdit.setEntryPrice(Double.parseDouble(parsedArgs.get("e/")));

@@ -112,17 +112,35 @@ public class Trade {
                 outcome + " | " +
                 strategy;
     }
+
+    /**
+     * Returns a single-line string representation of the trade.
+     * Matches the expected output: 1. AAPL | 2026-02-18 | Long | E:180 | TP:190 | SL:170 | Win | Breakout
+     *
+     * @return Formatted trade details.
+     */
+    @Override
+    public String toString() {
+        return ticker + " | " +
+                date + " | " +
+                direction + " | " +
+                "E:" + formatPrice(entryPrice) + " | " +
+                "TP:" + formatPrice(exitPrice) + " | " +
+                "SL:" + formatPrice(stopLossPrice) + " | " +
+                outcome + " | " +
+                strategy;
+    }
   
     public void setTicker(String ticker) {
-        this.ticker = ticker;
+        this.ticker = ticker.toUpperCase();
     }
 
     public void setDate(String date) {
         this.date = date;
     }
 
-    public void setDirection(String direction) {
-        this.direction = direction;
+    public void setDirection(String rawDir) {
+        this.direction = rawDir.substring(0, 1).toUpperCase() + rawDir.substring(1).toLowerCase();
     }
 
     public void setEntryPrice(double entryPrice) {
