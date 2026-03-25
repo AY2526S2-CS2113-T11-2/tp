@@ -69,4 +69,21 @@ class FilterCommandTest {
 
         assertTrue(output.contains("No trades match the filter criteria."));
     }
+
+    @Test
+    void execute_filterByPartialTicker_printsExpectedTrade() {
+        TradeList tradeList = new TradeList();
+        tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long", 100, 110, 95, "Win", "Breakout"));
+        tradeList.addTrade(new Trade("MSFT", "2026-03-02", "Short", 200, 190, 210, "Win", "Momentum"));
+
+        Ui ui = new Ui();
+        Storage storage = new Storage("./data/trades.txt");
+
+        FilterCommand command = new FilterCommand("-p t/AP");
+
+        String output = captureOutput(() -> command.execute(tradeList, ui, storage));
+
+        assertTrue(output.contains("AAPL | 2026-03-01 | Long"));
+        assertFalse(output.contains("MSFT | 2026-03-02 | Short"));
+    }
 }
