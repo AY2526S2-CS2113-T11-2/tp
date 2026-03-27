@@ -128,6 +128,8 @@ public class Ui {
                             double averageLoss, double expectedValue, double totalR) {
         assert totalTrades > 0 : "Total trades should be greater than zero";
         assert winRate >= 0 && winRate <= 100 : "Win rate should be between 0 and 100";
+        assert averageWin >= 0 : "Average win should be non-negative";
+        assert averageLoss >= 0 : "Average loss should be non-negative";
 
         logger.log(Level.INFO, "Displaying summary for {0} trades.", totalTrades);
 

@@ -24,6 +24,8 @@ public class TradeLog {
      * @param filePath Path to the file used for persistent storage.
      */
     public TradeLog(String filePath) {
+        assert filePath != null && !filePath.isEmpty() : "File path should not be null or empty";
+
         ui = new Ui();
         storage = new Storage(filePath);
         TradeList loadedTrades;

@@ -1,6 +1,7 @@
 package tradelog.logic.command;
 
 import org.junit.jupiter.api.Test;
+import tradelog.model.Trade;
 import tradelog.model.TradeList;
 import tradelog.storage.Storage;
 import tradelog.ui.Ui;
@@ -30,6 +31,36 @@ class ListCommandTest {
         ListCommand command = new ListCommand();
         String output = captureOutput(() -> command.execute(tradeList, ui, storage));
         assertTrue(output.contains("No trades logged yet."));
+    }
+
+    @Test
+    public void execute_nonEmptyTradeList_showsTrades() {
+        TradeList tradeList = new TradeList();
+        tradeList.addTrade(new Trade("AAPL", "2026-02-18",
+                "Long", 180.0, 190.0, 170.0, "Win", "Breakout"));
+        Ui ui = new Ui();
+        Storage storage = new Storage("./data/trades.txt");
+        ListCommand command = new ListCommand();
+        String output = captureOutput(() -> command.execute(tradeList, ui, storage));
+        assertTrue(output.contains("AAPL"));
+        assertTrue(output.contains("1."));
+    }
+
+    @Test
+    public void execute_multipleTradeList_showsAllTrades() {
+        TradeList tradeList = new TradeList();
+        tradeList.addTrade(new Trade("AAPL", "2026-02-18",
+                "Long", 180.0, 190.0, 170.0, "Win", "Breakout"));
+        tradeList.addTrade(new Trade("TSLA", "2026-02-17",
+                "Short", 400.0, 380.0, 410.0, "Win", "Pullback"));
+        Ui ui = new Ui();
+        Storage storage = new Storage("./data/trades.txt");
+        ListCommand command = new ListCommand();
+        String output = captureOutput(() -> command.execute(tradeList, ui, storage));
+        assertTrue(output.contains("1."));
+        assertTrue(output.contains("2."));
+        assertTrue(output.contains("AAPL"));
+        assertTrue(output.contains("TSLA"));
     }
 
     @Test
