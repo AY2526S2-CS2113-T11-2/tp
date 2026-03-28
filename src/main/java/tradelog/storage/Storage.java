@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import tradelog.exception.TradeLogException;
 import tradelog.model.Trade;
@@ -20,7 +23,8 @@ import tradelog.model.TradeList;
 public class Storage {
 
     private static final String ALGORITHM = "AES";
-    private static final String KEY = "secretKeyForAES!"; // 16-byte key for AES-128
+    private SecretKeySpec secretKey;
+    private String passwordHash;
 
     /** Path to the file used for persistent storage. */
     private final String filePath;
@@ -35,6 +39,33 @@ public class Storage {
     }
 
     /**
+     * Checks if the storage file exists.
+     *
+     * @return true if the file exists, false otherwise.
+     */
+    public boolean exists() {
+        return new File(filePath).exists();
+    }
+
+    /**
+     * Sets the password to be used for encryption and decryption.
+     *
+     * @param password The password provided by the user.
+     * @throws TradeLogException If the hashing algorithm is not found.
+     */
+    public void setPassword(String password) throws TradeLogException {
+        try {
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
+            byte[] key = sha.digest(password.getBytes(StandardCharsets.UTF_8));
+            this.passwordHash = Base64.getEncoder().encodeToString(key);
+            key = Arrays.copyOf(key, 16); // use first 16 bytes for AES-128
+            this.secretKey = new SecretKeySpec(key, ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            throw new TradeLogException("Encryption error: SHA-256 algorithm not found.");
+        }
+    }
+
+    /**
      * Encrypts the given plaintext string using AES.
      *
      * @param data The plaintext string to encrypt.
@@ -42,7 +73,10 @@ public class Storage {
      * @throws Exception If encryption fails.
      */
     private String encrypt(String data) throws Exception {
-        SecretKeySpec secretKey = new SecretKeySpec(KEY.getBytes(StandardCharsets.UTF_8), ALGORITHM);
+        if (secretKey == null) {
+            throw new TradeLogException("Password not set.");
+        }
+
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] encryptedBytes = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
@@ -57,7 +91,10 @@ public class Storage {
      * @throws Exception If decryption fails.
      */
     private String decrypt(String encryptedData) throws Exception {
-        SecretKeySpec secretKey = new SecretKeySpec(KEY.getBytes(StandardCharsets.UTF_8), ALGORITHM);
+        if (secretKey == null) {
+            throw new TradeLogException("Password not set.");
+        }
+
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
@@ -81,6 +118,9 @@ public class Storage {
                 }
             }
             try (FileWriter writer = new FileWriter(filePath)) {
+                // Write password hash on the first line
+                writer.write(passwordHash);
+                writer.write("\n");
                 for (int i = 0; i < tradeList.size(); i++) {
                     String encryptedLine = encrypt(tradeList.getTrade(i).toStorageString());
                     writer.write(encryptedLine);
@@ -107,6 +147,12 @@ public class Storage {
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            // Read first line and verify password hash
+            String storedHash = reader.readLine();
+            if (storedHash == null || !storedHash.equals(passwordHash)) {
+                throw new TradeLogException("Incorrect password or corrupted file.");
+            }
+
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) {
@@ -130,7 +176,7 @@ public class Storage {
                     }
                 } catch (Exception e) {
                     throw new TradeLogException("Failed to decrypt trade data. "
-                            + "The file might be corrupted or not encrypted.");
+                            + "The file might be corrupted or incorrect password.");
                 }
             }
         } catch (IOException e) {
