@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import tradelog.logic.command.StrategyStats;
 import tradelog.logic.parser.ParserUtil;
 import tradelog.model.Trade;
 import tradelog.model.TradeList;
@@ -15,7 +16,7 @@ public class Ui {
 
     private static final String DIVIDER = "-".repeat(80);
     private static final String COMMAND_LIST =
-            "Commands: add, list, edit, delete, filter, summary, exit";
+            "Commands: add, list, edit, delete, filter, compare, summary, exit";
     private static final String STRATEGY_SHORTCUTS_HEADER = "Strategy shortcuts:";
     private static final Logger logger = Logger.getLogger(Ui.class.getName());
 
@@ -161,6 +162,35 @@ public class Ui {
         System.out.printf("Average Loss: %.2fR%n", averageLoss);
         System.out.printf("Overall EV: %s%.2fR%n", evSign, expectedValue);
         System.out.printf("Total R: %s%.2fR%n", totalRSign, totalR);
+        showLine();
+    }
+
+    /**
+     * Prints performance metrics grouped by strategy.
+     *
+     * @param strategyComparison Map of strategy names to their aggregated metrics.
+     */
+    public void showStrategyComparison(Map<String, StrategyStats> strategyComparison) {
+        assert strategyComparison != null : "Strategy comparison data should not be null";
+
+        logger.log(Level.INFO, "Displaying strategy comparison for {0} strategies.",
+                strategyComparison.size());
+
+        showLine();
+        System.out.println("Strategy Comparison:\n");
+        for (Map.Entry<String, StrategyStats> strategyEntry : strategyComparison.entrySet()) {
+            String strategyName = strategyEntry.getKey();
+            StrategyStats strategyStats = strategyEntry.getValue();
+            String evSign = strategyStats.getExpectedValue() >= 0 ? "+" : "-";
+
+            System.out.println(strategyName + ":");
+            System.out.println("Trades: " + strategyStats.getTradeCount());
+            System.out.printf("Win Rate: %.0f%%%n", strategyStats.getWinRate());
+            System.out.printf("Average Win: %.2fR%n", strategyStats.getAverageWin());
+            System.out.printf("Average Loss: %.2fR%n", strategyStats.getAverageLoss());
+            System.out.printf("EV: %s%.3fR%n%n", evSign,
+                    Math.abs(strategyStats.getExpectedValue()));
+        }
         showLine();
     }
 

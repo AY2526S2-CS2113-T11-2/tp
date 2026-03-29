@@ -2,6 +2,7 @@ package tradelog.logic.parser;
 
 import tradelog.exception.TradeLogException;
 import tradelog.logic.command.AddCommand;
+import tradelog.logic.command.CompareCommand;
 import tradelog.logic.command.Command;
 import tradelog.logic.command.DeleteCommand;
 import tradelog.logic.command.EditCommand;
@@ -33,6 +34,7 @@ public class Parser {
         case "delete" -> new DeleteCommand(arguments);
         case "edit" -> new EditCommand(arguments);
         case "filter" -> new FilterCommand(arguments);
+        case "compare" -> new CompareCommand();
         case "summary" -> new SummaryCommand();
         case "exit" -> new ExitCommand();
         default -> throw new TradeLogException(

@@ -23,6 +23,7 @@
 * **Deleting a Trade: `delete`** – Remove specific trade entries from the log by index.
 * **Listing Trades: `list`** – Display all logged trades in a formatted, single-line overview.
 * **Performance Summary: `summary`** – View metrics including Win Rate, Average Win/Loss, EV, and Total R.
+* **Strategy Comparison: `compare`** – View win rate, average win/loss, and EV grouped by strategy.
 
 ### [Version 2.0] - System & Logic Enhancement
 *Planned features for advanced strategy management.*
@@ -64,5 +65,6 @@
 | **Edit Trade**   | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [o/OUTCOME] [strat/STRATEGY]` |
 | **Delete Trade** | `delete INDEX`                                                                                            |
 | **List Trades**  | `list`                                                                                                    |
+| **Compare**      | `compare`                                                                                                 |
 | **Summary**      | `summary`                                                                                                 |
 | **Exit**         | `exit`                                                                                                    |
