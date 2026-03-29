@@ -3,6 +3,8 @@ package tradelog.logic.parser;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import tradelog.exception.TradeLogException;
 
@@ -13,6 +15,11 @@ import tradelog.exception.TradeLogException;
 public class ParserUtil {
 
     private static final Map<String, String> STRATEGY_SHORTCUTS = createStrategyShortcuts();
+    private static final Logger logger = Logger.getLogger(ParserUtil.class.getName());
+
+    private ParserUtil() {
+        // Utility class; prevent instantiation.
+    }
 
     private static Map<String, String> createStrategyShortcuts() {
         Map<String, String> shortcuts = new LinkedHashMap<>();
@@ -77,8 +84,18 @@ public class ParserUtil {
      * @return The expanded strategy name if a shortcut is recognised, otherwise the trimmed input.
      */
     public static String parseStrategy(String strategy) {
+        assert strategy != null : "Strategy should not be null";
+
         String trimmedStrategy = strategy.trim();
-        return STRATEGY_SHORTCUTS.getOrDefault(trimmedStrategy.toUpperCase(), trimmedStrategy);
+        String expandedStrategy = STRATEGY_SHORTCUTS.getOrDefault(
+                trimmedStrategy.toUpperCase(), trimmedStrategy);
+
+        if (!expandedStrategy.equals(trimmedStrategy)) {
+            logger.log(Level.INFO, "Expanded strategy shortcut {0} to {1}",
+                    new Object[] {trimmedStrategy, expandedStrategy});
+        }
+
+        return expandedStrategy;
     }
 
     /**
@@ -100,7 +117,8 @@ public class ParserUtil {
     public static void validatePrices(double entryPrice, double stopLossPrice)
             throws TradeLogException {
         if (entryPrice == stopLossPrice) {
-            throw new TradeLogException("Entry price and stop loss price cannot have the same value.");
+            throw new TradeLogException(
+                    "Entry price and stop loss price cannot have the same value.");
         }
     }
 

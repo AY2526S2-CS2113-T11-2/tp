@@ -50,7 +50,8 @@ class UiTest {
     public void showWelcome_containsCommandList() {
         Ui ui = new Ui();
         String output = captureOutput(ui::showWelcome);
-        assertTrue(output.contains("Commands: add, list, edit, delete, filter, summary, exit"));
+        assertTrue(output.contains(
+                "Commands: add, list, edit, delete, filter, summary, exit"));
     }
 
     @Test

@@ -14,7 +14,9 @@ import tradelog.model.TradeList;
 public class Ui {
 
     private static final String DIVIDER = "-".repeat(80);
-    private static final String COMMAND_LIST = "Commands: add, list, edit, delete, filter, summary, exit";
+    private static final String COMMAND_LIST =
+            "Commands: add, list, edit, delete, filter, summary, exit";
+    private static final String STRATEGY_SHORTCUTS_HEADER = "Strategy shortcuts:";
     private static final Logger logger = Logger.getLogger(Ui.class.getName());
 
     /** Prints the welcome banner shown on startup. */
@@ -28,8 +30,13 @@ public class Ui {
     }
 
     private void showStrategyShortcuts() {
-        System.out.println("Strategy shortcuts:");
-        for (Map.Entry<String, String> strategyShortcut : ParserUtil.getStrategyShortcuts().entrySet()) {
+        Map<String, String> strategyShortcuts = ParserUtil.getStrategyShortcuts();
+
+        logger.log(Level.INFO, "Displaying {0} strategy shortcuts.",
+                strategyShortcuts.size());
+
+        System.out.println(STRATEGY_SHORTCUTS_HEADER);
+        for (Map.Entry<String, String> strategyShortcut : strategyShortcuts.entrySet()) {
             System.out.println(strategyShortcut.getKey() + " = " + strategyShortcut.getValue());
         }
     }

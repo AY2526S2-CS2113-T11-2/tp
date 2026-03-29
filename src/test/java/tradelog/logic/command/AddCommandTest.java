@@ -64,13 +64,15 @@ public class AddCommandTest {
 
     @Test
     public void execute_strategyShortcut_tradeStoresExpandedStrategy() throws TradeLogException {
-        String validArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/BB";
+        String validArgs =
+                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/BB";
         AddCommand command = new AddCommand(validArgs);
 
         command.execute(tradeList, dummyUi, dummyStorage);
 
         Trade addedTrade = tradeList.getTrade(0);
-        assertEquals("Breakout", addedTrade.getStrategy(), "Shortcut should be stored as full strategy name.");
+        assertEquals("Breakout", addedTrade.getStrategy(),
+                "Shortcut should be stored as full strategy name.");
     }
 
     /**
