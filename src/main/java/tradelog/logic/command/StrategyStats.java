@@ -40,6 +40,7 @@ public class StrategyStats {
      * @return The number of trades.
      */
     public int getTradeCount() {
+        assert tradeCount >= 0 : "Trade count should be non-negative";
         return tradeCount;
     }
 
@@ -52,7 +53,9 @@ public class StrategyStats {
         if (tradeCount == 0) {
             return 0;
         }
-        return ((double) winCount / tradeCount) * 100;
+        double winRate = ((double) winCount / tradeCount) * 100;
+        assert winRate >= 0 && winRate <= 100 : "Win rate should be between 0 and 100";
+        return winRate;
     }
 
     /**
@@ -64,7 +67,9 @@ public class StrategyStats {
         if (winCount == 0) {
             return 0;
         }
-        return totalWinR / winCount;
+        double averageWin = totalWinR / winCount;
+        assert averageWin >= 0 : "Average win should be non-negative";
+        return averageWin;
     }
 
     /**
@@ -76,7 +81,9 @@ public class StrategyStats {
         if (lossCount == 0) {
             return 0;
         }
-        return totalLossR / lossCount;
+        double averageLoss = totalLossR / lossCount;
+        assert averageLoss >= 0 : "Average loss should be non-negative";
+        return averageLoss;
     }
 
     /**
@@ -88,6 +95,9 @@ public class StrategyStats {
         if (tradeCount == 0) {
             return 0;
         }
-        return (totalWinR - totalLossR) / tradeCount;
+        double expectedValue = (totalWinR - totalLossR) / tradeCount;
+        assert !Double.isNaN(expectedValue) : "Expected value should not be NaN";
+        assert !Double.isInfinite(expectedValue) : "Expected value should be finite";
+        return expectedValue;
     }
 }
