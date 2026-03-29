@@ -166,6 +166,8 @@ To adhere to the principle of Separation of Concerns, the execution of the `add`
 
 2. Execution Phase: Once the `AddCommand` is successfully instantiated with a fully valid `Trade` object held in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command appends the new trade to the `TradeList`, triggers the `Ui` to display a confirmation message with the formatted trade details, and implicitly relies on the main loop's architecture to save the newly updated state to the text file.
 
+##### Sequence Diagram — Full `add` execution path
+
 ```
 User        TradeLog         Parser        AddCommand         Trade        TradeList        Ui
 │             │               │               │                │              │            │
@@ -190,7 +192,89 @@ User        TradeLog         Parser        AddCommand         Trade        Trade
 
 The alternative considered having the constructor simply store the raw user string, pushing all tokenizing and validation inside `execute()`. This was rejected because it violates the Single Responsibility Principle. It would bloat the `execute()` method with string manipulation, financial logic validation, memory updates, and UI updates all at once, making unit testing significantly more difficult.
 
-#### 2.2.4 Testing Strategy for `Ui` and `ListCommand`
+---
+
+#### 2.2.4 DeleteCommand
+
+##### Architecture-Level Description
+
+`DeleteCommand` handles the removal of a specific logged trade from the application's memory. It relies heavily on boundary checking to ensure that users do not attempt to delete trades that do not exist, successfully mapping the user's 1-based visual index (seen in the UI) to the internal 0-based `ArrayList` index of the model.
+
+##### Component-Level Description
+
+The constructor of `DeleteCommand` accepts a string representing the target index. It first performs superficial validation—checking for empty strings, non-numeric characters, and negative numbers—and throws a `TradeLogException` immediately if the input is malformed.
+
+During `execute(tradeList, ui, storage)`, the command attempts to call `tradeList.deleteTrade(tradeIndex - 1)`. Because the `Parser` phase does not inherently know the current dynamic size of the `TradeList`, out-of-bounds errors cannot be caught during construction. Therefore, the `execute` method wraps the deletion call in a `try-catch` block targeting `IndexOutOfBoundsException`. If caught, it gracefully intercepts the crash and delegates an error message to `Ui.showError()`.
+
+##### Sequence Diagram — `delete` execution with boundary handling
+
+```
+TradeLog        DeleteCommand        TradeList             Ui
+│                  │                  │                  │
+│────execute()────►│                  │                  │
+│                  │──deleteTrade(i)─►│                  │
+│                  │                  │ [if valid]       │
+│                  │◄──deletedTrade───│                  │
+│                  │──printTrade()──────────────────────►│
+│                  │◄────────────────────────────────────│
+│                  │                  │ [if invalid]     │
+│                  │◄──throws IndexOutOfBoundsException──│
+│                  │──showError()───────────────────────►│
+│                  │◄────────────────────────────────────│
+│◄─────────────────│                  │                  │
+```
+
+##### Design Rationale
+
+An alternative considered letting `DeleteCommand` throw the `IndexOutOfBoundsException` back up to the main `TradeLog` execution loop. This was rejected because the main loop would then need specific catch blocks for every possible internal data structure error across all commands. Keeping the error handling localized to the command ensures the main loop remains clean and strictly focused on high-level orchestration.
+
+---
+
+#### 2.2.5 SummaryCommand
+
+##### Architecture-Level Description
+
+`SummaryCommand` calculates and displays an aggregate mathematical performance report across the entire `TradeList`. Like `ListCommand`, it is a non-mutating operation; it reads the application's state to perform calculations but does not alter the data or interact with `Storage`.
+
+##### Component-Level Description
+
+When `execute()` is called, `SummaryCommand` first guards against an empty `TradeList`, triggering an early exit via `Ui.showSummaryEmpty()` if no trades exist.
+
+If populated, it iterates through every trade in the list exactly once. During this single `O(n)` pass, it maintains running totals for total trades, winning trades, losing trades, total positive R-multiples, and total negative R-multiples. Break-even trades (where Risk/Reward equals 0) are safely skipped in the specific win/loss tallies but are correctly factored into the total trade count and Expected Value (EV) denominator.
+
+After the loop completes, it calculates the win rate, average win, average loss, and EV, passing these final primitive floating-point values directly to `Ui.showSummary()` for formatting.
+
+##### Sequence Diagram — `summary` execution and calculation
+
+```
+TradeLog        SummaryCommand        TradeList             Ui
+│                  │                   │                 │
+│────execute()────►│                   │                 │
+│                  │──isEmpty()───────►│                 │
+│                  │◄──boolean─────────│                 │
+│                  │                   │                 │
+│                  │ [if not empty]    │                 │
+│                  │──size()──────────►│                 │
+│                  │◄──int─────────────│                 │
+│                  │                   │                 │
+│                  │ loop [for every trade in list]      │
+│                  │──getTrade(i)─────►│                 │
+│                  │◄──Trade───────────│                 │
+│                  │──getRiskReward()─►│                 │
+│                  │◄──double──────────│                 │
+│                  │                   │                 │
+│                  │──showSummary(metrics)──────────────►│
+│                  │◄────────────────────────────────────│
+│◄─────────────────│                   │                 │
+```
+
+##### Design Rationale
+
+An alternative considered having `TradeList` maintain running totals internally (e.g., updating a `totalWins` and `totalLosses` variable every time an `add`, `delete`, or `edit` command is executed). This was rejected because it heavily couples the core data model to a specific reporting feature. It would also make state-changing operations significantly more complex and prone to synchronization bugs (e.g., if a user edits a trade from a "loss" to a "win", the `TradeList` would have to reverse previous mathematical operations).
+
+---
+
+#### 2.2.6 Testing Strategy for `Ui` and `ListCommand`
 
 Both `Ui` and `ListCommand` are tested using a `captureOutput` helper that temporarily redirects `System.out` to a `ByteArrayOutputStream`. This pattern avoids any dependency on mocking frameworks and works natively with JUnit 5.
 
@@ -207,7 +291,7 @@ Both test classes confirm that **no state is mutated** by these components — t
 
 ---
 
-#### 2.2.5 [v2.0] Strategy Shortcut Expansion Feature
+#### 2.2.7 [v2.0] Strategy Shortcut Expansion Feature
 
 ##### Overview
 
@@ -287,7 +371,7 @@ Expansion is done at parse time (in `AddCommand`'s constructor), not at display 
 
 ---
 
-#### 2.2.6 [v2.0] Strategy Comparison Feature (`compare` command)
+#### 2.2.8 [v2.0] Strategy Comparison Feature (`compare` command)
 
 ##### Overview
 
