@@ -1,11 +1,14 @@
 package tradelog.ui;
 
 import org.junit.jupiter.api.Test;
+import tradelog.logic.command.StrategyStats;
 import tradelog.model.Trade;
 import tradelog.model.TradeList;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,7 +53,17 @@ class UiTest {
     public void showWelcome_containsCommandList() {
         Ui ui = new Ui();
         String output = captureOutput(ui::showWelcome);
-        assertTrue(output.contains("Commands: add, list, edit, delete, summary, exit"));
+        assertTrue(output.contains(
+                "Commands: add, list, edit, delete, filter, compare, summary, exit"));
+    }
+
+    @Test
+    public void showWelcome_containsStrategyShortcuts() {
+        Ui ui = new Ui();
+        String output = captureOutput(ui::showWelcome);
+        assertTrue(output.contains("Strategy shortcuts:"));
+        assertTrue(output.contains("BB = Breakout"));
+        assertTrue(output.contains("MTR = Major Trend Reversal"));
     }
 
     @Test
@@ -110,5 +123,25 @@ class UiTest {
         String output = captureOutput(() -> ui.printTrade(trade));
         assertTrue(output.contains("Trade Summary:"));
         assertTrue(output.contains("AAPL"));
+    }
+
+    @Test
+    public void showStrategyComparison_containsStrategyMetrics() {
+        Ui ui = new Ui();
+        Map<String, StrategyStats> strategyComparison = new LinkedHashMap<>();
+        StrategyStats breakoutStats = new StrategyStats();
+        breakoutStats.addTrade(2.0);
+        breakoutStats.addTrade(-1.0);
+        strategyComparison.put("Breakout", breakoutStats);
+
+        String output = captureOutput(() -> ui.showStrategyComparison(strategyComparison));
+
+        assertTrue(output.contains("Strategy Comparison:"));
+        assertTrue(output.contains("Breakout:"));
+        assertTrue(output.contains("Trades: 2"));
+        assertTrue(output.contains("Win Rate: 50%"));
+        assertTrue(output.contains("Average Win: 2.00R"));
+        assertTrue(output.contains("Average Loss: 1.00R"));
+        assertTrue(output.contains("EV: +0.500R"));
     }
 }

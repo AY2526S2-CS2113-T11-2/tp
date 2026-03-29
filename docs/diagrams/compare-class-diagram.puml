@@ -1,0 +1,43 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class Command {
+    +execute(tradeList : TradeList, ui : Ui, storage : Storage) : void {abstract}
+}
+
+class CompareCommand {
+    +execute(tradeList : TradeList, ui : Ui, storage : Storage) : void
+}
+
+class StrategyStats {
+    -tradeCount : int
+    -winCount : int
+    -lossCount : int
+    -totalWinR : double
+    -totalLossR : double
+    +addTrade(rr : double) : void
+}
+
+class TradeList {
+    +isEmpty() : boolean
+    +size() : int
+    +getTrade(index : int) : Trade
+}
+
+class Trade {
+    +getStrategy() : String
+    +getRiskRewardRatio() : double
+}
+
+class Ui {
+    +showSummaryEmpty() : void
+    +showStrategyComparison(statsMap : Map) : void
+}
+
+Command <|-- CompareCommand
+CompareCommand ..> TradeList : uses
+CompareCommand ..> Ui : uses
+CompareCommand ..> StrategyStats : creates
+TradeList "1" *--> "*" Trade
+Ui ..> StrategyStats : uses
+@enduml

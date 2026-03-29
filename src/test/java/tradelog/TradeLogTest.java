@@ -49,10 +49,24 @@ class TradeLogTest {
 
     @Test
     public void run_addCommand_showsTradeAdded() {
-        String addInput = "add t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/Breakout\nexit\n";
+        String addInput =
+                "add t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/Breakout\nexit\n";
         System.setIn(new ByteArrayInputStream(addInput.getBytes()));
         String output = captureOutput(() -> new TradeLog("./data/test_trades.txt").run());
         assertTrue(output.contains("Trade successfully added."));
+    }
+
+    @Test
+    public void run_compareCommand_showsStrategyComparison() {
+        String compareInput = """
+                add t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/BB
+                compare
+                exit
+                """;
+        System.setIn(new ByteArrayInputStream(compareInput.getBytes()));
+        String output = captureOutput(() -> new TradeLog("./data/test_trades.txt").run());
+        assertTrue(output.contains("Strategy Comparison:"));
+        assertTrue(output.contains("Breakout:"));
     }
 
     @Test

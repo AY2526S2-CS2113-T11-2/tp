@@ -1,0 +1,62 @@
+@startuml
+hide footbox
+
+actor User
+participant ":TradeLog" as TradeLog
+participant ":Parser" as Parser
+participant ":TradeList" as TradeList
+participant ":Trade" as Trade
+participant ":Ui" as Ui
+
+User -> TradeLog : input "compare"
+activate TradeLog
+
+TradeLog -> Parser : parseCommand("compare")
+activate Parser
+create participant "cc:CompareCommand" as CompareCommand
+Parser -> CompareCommand : new CompareCommand()
+Parser --> TradeLog : cc
+deactivate Parser
+
+TradeLog -> CompareCommand : execute(tradeList, ui, storage)
+activate CompareCommand
+
+CompareCommand -> TradeList : isEmpty()
+activate TradeList
+TradeList --> CompareCommand
+deactivate TradeList
+
+loop for each trade i = 0..size-1
+    CompareCommand -> TradeList : getTrade(i)
+    activate TradeList
+    TradeList --> CompareCommand : t
+    deactivate TradeList
+
+    CompareCommand -> Trade : getStrategy()
+    activate Trade
+    Trade --> CompareCommand : strategy
+    deactivate Trade
+
+    CompareCommand -> Trade : getRiskRewardRatio()
+    activate Trade
+    Trade --> CompareCommand : rr
+    deactivate Trade
+
+    create participant "ss:StrategyStats" as StrategyStats
+    CompareCommand -> StrategyStats : addTrade(rr)
+    activate StrategyStats
+    StrategyStats --> CompareCommand
+    deactivate StrategyStats
+end
+
+CompareCommand -> Ui : showStrategyComparison(statsMap)
+activate Ui
+Ui --> CompareCommand
+deactivate Ui
+
+CompareCommand --> TradeLog
+deactivate CompareCommand
+
+TradeLog --> User
+deactivate TradeLog
+@enduml

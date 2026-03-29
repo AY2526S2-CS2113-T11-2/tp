@@ -1,6 +1,17 @@
 --------------------------------------------------------------------------------
 Welcome to TradeLog!
-Commands: add, list, edit, delete, summary, exit
+Commands: add, list, edit, delete, filter, compare, summary, exit
+Strategy shortcuts:
+BB = Breakout
+TBF = Trend Bar Failure
+PB = Pullback
+MTR = Major Trend Reversal
+HOD = High of Day
+LOD = Low of Day
+MR = Mean Reversion
+TR = Trading Range
+DB = Double Bottom
+DT = Double Top
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Trade Summary:
@@ -40,6 +51,17 @@ Average Win: 1.50R
 Average Loss: 0.00R
 Overall EV: +1.50R
 Total R: +1.50R
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+Strategy Comparison:
+
+Breakout:
+Trades: 1
+Win Rate: 100%
+Average Win: 1.50R
+Average Loss: 0.00R
+EV: +1.500R
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Trade Summary:
