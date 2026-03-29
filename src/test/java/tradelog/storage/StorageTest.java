@@ -38,10 +38,11 @@ public class StorageTest {
      * Sets up the file path inside the temporary directory before each test.
      */
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws TradeLogException {
         // Resolve a file name inside the temporary directory
         testFilePath = tempDir.resolve("test_tradelog.txt").toString();
         storage = new Storage(testFilePath);
+        storage.setPassword("testpassword");
     }
 
     /**
@@ -52,19 +53,13 @@ public class StorageTest {
      */
     @Test
     public void saveAndLoadTrades_validData_successfulIntegration() throws TradeLogException {
-        // 1. Setup a dummy TradeList with one trade
         TradeList originalList = new TradeList();
         Trade trade = new Trade("AAPL", "2023-10-10", "long",
                 150.0, 160.0, 140.0, "WIN", "Trend");
         originalList.addTrade(trade);
-
-        // 2. Save it to the temporary file
         storage.saveTrades(originalList);
-
-        // 3. Load it back using a completely fresh TradeList
         TradeList loadedList = storage.loadTrades();
 
-        // 4. Verify the lists match in size and content
         assertEquals(1, loadedList.size(), "Loaded list should contain exactly 1 trade.");
 
         Trade loadedTrade = loadedList.getTrade(0);
@@ -82,14 +77,10 @@ public class StorageTest {
      */
     @Test
     public void loadTrades_nonExistentFile_returnsEmptyList() throws TradeLogException {
-        // Ensure the file path does not point to an existing file
         File file = new File(testFilePath);
         assertTrue(!file.exists(), "File should not exist prior to test.");
-
-        // Attempt to load
         TradeList loadedList = storage.loadTrades();
 
-        // Verify it safely returns an empty list
         assertEquals(0, loadedList.size(), "Loading a non-existent file should return an empty list.");
     }
 
@@ -102,17 +93,13 @@ public class StorageTest {
      */
     @Test
     public void saveTrades_nestedDirectory_createsParentDirectoriesSuccessfully() throws TradeLogException {
-        // Create a path with new, non-existent nested folders
         String nestedFilePath = tempDir.resolve("data").resolve("saves").resolve("nested_log.txt").toString();
         Storage nestedStorage = new Storage(nestedFilePath);
-
+        nestedStorage.setPassword("testpassword");
         TradeList emptyList = new TradeList();
-
-        // Save the empty list (this should trigger the mkdirs() logic)
         nestedStorage.saveTrades(emptyList);
-
-        // Verify that the file and its parent directories were actually created
         File nestedFile = new File(nestedFilePath);
+        
         assertTrue(nestedFile.exists(), "The nested file should have been created.");
         assertTrue(nestedFile.getParentFile().exists(), "The parent directories should have been created.");
     }
