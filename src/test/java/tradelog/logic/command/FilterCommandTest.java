@@ -80,6 +80,23 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void execute_filterByStrategyShortcut_matchesExpandedStrategy() {
+        TradeList tradeList = new TradeList();
+        tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long", 100, 110, 95, "Win", "Breakout"));
+        tradeList.addTrade(new Trade("TSLA", "2026-03-03", "Long", 100, 90, 95, "Loss", "Pullback"));
+
+        Ui ui = new Ui();
+        Storage storage = new Storage("./data/trades.txt");
+
+        FilterCommand command = new FilterCommand("strat/BB");
+        String output = captureOutput(() -> command.execute(tradeList, ui, storage));
+
+        assertTrue(output.contains("AAPL | 2026-03-01 | Long"));
+        assertFalse(output.contains("TSLA | 2026-03-03 | Long"));
+        assertTrue(output.contains("Total Trades: 1"));
+    }
+
+    @Test
     public void execute_filterNoMatch_showsNoMatchMessage() {
         TradeList tradeList = new TradeList();
         tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long", 100, 110, 95, "Win", "Breakout"));

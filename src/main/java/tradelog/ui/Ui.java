@@ -1,8 +1,10 @@
 package tradelog.ui;
 
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import tradelog.logic.parser.ParserUtil;
 import tradelog.model.Trade;
 import tradelog.model.TradeList;
 
@@ -12,15 +14,24 @@ import tradelog.model.TradeList;
 public class Ui {
 
     private static final String DIVIDER = "-".repeat(80);
+    private static final String COMMAND_LIST = "Commands: add, list, edit, delete, filter, summary, exit";
     private static final Logger logger = Logger.getLogger(Ui.class.getName());
 
     /** Prints the welcome banner shown on startup. */
     public void showWelcome() {
         showLine();
         System.out.println("Welcome to TradeLog!");
-        System.out.println("Commands: add, list, edit, delete, summary, exit");
+        System.out.println(COMMAND_LIST);
+        showStrategyShortcuts();
         showLine();
         logger.log(Level.INFO, "Welcome message displayed.");
+    }
+
+    private void showStrategyShortcuts() {
+        System.out.println("Strategy shortcuts:");
+        for (Map.Entry<String, String> strategyShortcut : ParserUtil.getStrategyShortcuts().entrySet()) {
+            System.out.println(strategyShortcut.getKey() + " = " + strategyShortcut.getValue());
+        }
     }
 
     /** Prints the goodbye message shown when exiting the app. */

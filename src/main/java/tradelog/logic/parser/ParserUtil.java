@@ -1,5 +1,9 @@
 package tradelog.logic.parser;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import tradelog.exception.TradeLogException;
 
 /**
@@ -7,6 +11,23 @@ import tradelog.exception.TradeLogException;
  * Helps keep the main Parser class clean and focused on routing commands.
  */
 public class ParserUtil {
+
+    private static final Map<String, String> STRATEGY_SHORTCUTS = createStrategyShortcuts();
+
+    private static Map<String, String> createStrategyShortcuts() {
+        Map<String, String> shortcuts = new LinkedHashMap<>();
+        shortcuts.put("BB", "Breakout");
+        shortcuts.put("TBF", "Trend Bar Failure");
+        shortcuts.put("PB", "Pullback");
+        shortcuts.put("MTR", "Major Trend Reversal");
+        shortcuts.put("HOD", "High of Day");
+        shortcuts.put("LOD", "Low of Day");
+        shortcuts.put("MR", "Mean Reversion");
+        shortcuts.put("TR", "Trading Range");
+        shortcuts.put("DB", "Double Bottom");
+        shortcuts.put("DT", "Double Top");
+        return Collections.unmodifiableMap(shortcuts);
+    }
 
     /**
      * Parses a string representation of a price into a double.
@@ -47,6 +68,26 @@ public class ParserUtil {
             return dir.substring(0, 1).toUpperCase() + dir.substring(1);
         }
         throw new TradeLogException("Direction must be exactly 'long' or 'short'!");
+    }
+
+    /**
+     * Expands a known strategy shortcut into its full strategy name.
+     *
+     * @param strategy The raw strategy input from the user.
+     * @return The expanded strategy name if a shortcut is recognised, otherwise the trimmed input.
+     */
+    public static String parseStrategy(String strategy) {
+        String trimmedStrategy = strategy.trim();
+        return STRATEGY_SHORTCUTS.getOrDefault(trimmedStrategy.toUpperCase(), trimmedStrategy);
+    }
+
+    /**
+     * Returns the supported strategy shortcuts in display order.
+     *
+     * @return An unmodifiable map of strategy shortcuts to full strategy names.
+     */
+    public static Map<String, String> getStrategyShortcuts() {
+        return STRATEGY_SHORTCUTS;
     }
 
     /**

@@ -1,6 +1,17 @@
 --------------------------------------------------------------------------------
 Welcome to TradeLog!
-Commands: add, list, edit, delete, summary, exit
+Commands: add, list, edit, delete, filter, summary, exit
+Strategy shortcuts:
+BB = Breakout
+TBF = Trend Bar Failure
+PB = Pullback
+MTR = Major Trend Reversal
+HOD = High of Day
+LOD = Low of Day
+MR = Mean Reversion
+TR = Trading Range
+DB = Double Bottom
+DT = Double Top
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Trade Summary:

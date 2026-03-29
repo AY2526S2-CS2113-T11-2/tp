@@ -90,4 +90,13 @@ public class EditCommandTest {
         EditCommand command = new EditCommand("10 t/MSFT");
         assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
     }
+
+    @Test
+    public void execute_strategyShortcut_strategyExpandedSuccessfully() throws TradeLogException {
+        EditCommand command = new EditCommand("1 strat/MTR");
+
+        command.execute(tradeList, ui, storage);
+
+        assertEquals("Major Trend Reversal", tradeList.getTrade(0).getStrategy());
+    }
 }

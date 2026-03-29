@@ -50,7 +50,16 @@ class UiTest {
     public void showWelcome_containsCommandList() {
         Ui ui = new Ui();
         String output = captureOutput(ui::showWelcome);
-        assertTrue(output.contains("Commands: add, list, edit, delete, summary, exit"));
+        assertTrue(output.contains("Commands: add, list, edit, delete, filter, summary, exit"));
+    }
+
+    @Test
+    public void showWelcome_containsStrategyShortcuts() {
+        Ui ui = new Ui();
+        String output = captureOutput(ui::showWelcome);
+        assertTrue(output.contains("Strategy shortcuts:"));
+        assertTrue(output.contains("BB = Breakout"));
+        assertTrue(output.contains("MTR = Major Trend Reversal"));
     }
 
     @Test
