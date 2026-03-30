@@ -192,46 +192,12 @@ User        TradeLog         Parser        AddCommand         Trade        Trade
 
 The alternative considered having the constructor simply store the raw user string, pushing all tokenizing and validation inside `execute()`. This was rejected because it violates the Single Responsibility Principle. It would bloat the `execute()` method with string manipulation, financial logic validation, memory updates, and UI updates all at once, making unit testing significantly more difficult.
 
-<<<<<<< n
-=======
 ---
 
->>>>>>> master
 #### 2.2.4 DeleteCommand
 
 ##### Architecture-Level Description
 
-<<<<<<< n
-The `DeleteCommand` is a core state-changing operation responsible for removing existing trades from the TradeLog system. It acts as the bridge between the `Parser` component (which supplies the raw user input), the `Model` component (by locating and deleting the specified `Trade` object from the in-memory `TradeList`), and the `Ui` component (by displaying either a successful deletion message or an error message if the index is invalid at runtime).
-
-To adhere to the principle of Separation of Concerns, the execution of the `delete` feature is explicitly split into two distinct phases: an initialization/validation phase, and an execution/mutation phase.
-
-##### Component-Level Description
-
-1. Construction & Validation Phase: When the user inputs a `delete` command, the `Parser` creates a new `DeleteCommand(String arguments)`. The constructor immediately trims the raw argument string and validates that it is neither missing nor blank. It then attempts to parse the argument into an integer index. If the input is not a valid integer, or if the parsed value is less than or equal to zero, a `TradeLogException` is thrown before the `TradeList` or `Ui` is ever accessed.
-
-
-2. Execution Phase: Once the `DeleteCommand` is successfully instantiated with a valid positive index stored in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command converts the user-facing 1-based index into the system’s internal 0-based index and attempts to remove the corresponding `Trade` from the `TradeList`. If the deletion succeeds, the deleted trade is printed and a confirmation message is shown through the `Ui`. If the index is out of bounds, the command catches the resulting `IndexOutOfBoundsException` and displays an error message instead. As with other state-changing commands, persistence is handled by the main loop architecture after successful execution.
-
-```
-User        TradeLog         Parser       DeleteCommand       TradeList        Trade         Ui
-│             │               │               │                 │              │            │
-│─"delete 2"─►│               │               │                 │              │            │
-│             │─parseCommand─►│               │                 │              │            │
-│             │               │─new DeleteCmd(arguments)───────►│              │            │
-│             │               │               │                 │              │            │
-│             │               │◄──────DeleteCommand─────────────│              │            │
-│             │◄──────────────│               │                 │              │            │
-│             │               │               │                 │              │            │
-│             │────────────execute(tradeList, ui, storage)─────►│              │            │
-│             │               │               │──deleteTrade()─►│              │            │
-│             │               │               │◄──deletedTrade──│              │            │
-│             │               │               │──printTrade(deletedTrade)─────►│            │
-│             │               │               │◄───────────────────────────────│            │
-│             │               │               │──showTradeDeleted()───────────►│            │
-│             │               │               │◄───────────────────────────────│            │
-│             │◄──────────────────────────────│                 │              │            │
-=======
 `DeleteCommand` handles the removal of a specific logged trade from the application's memory. It relies heavily on boundary checking to ensure that users do not attempt to delete trades that do not exist, successfully mapping the user's 1-based visual index (seen in the UI) to the internal 0-based `ArrayList` index of the model.
 
 ##### Component-Level Description
@@ -300,24 +266,15 @@ TradeLog        SummaryCommand        TradeList             Ui
 │                  │──showSummary(metrics)──────────────►│
 │                  │◄────────────────────────────────────│
 │◄─────────────────│                   │                 │
->>>>>>> master
 ```
 
 ##### Design Rationale
 
-<<<<<<< n
-The alternative considered was having the constructor simply store the raw user string and defer all parsing and validation to `execute()`. This was rejected because it would violate the Single Responsibility Principle. It would cause the `execute()` method to handle input sanitization, integer parsing, validity checks, model mutation, and UI interaction all in one place, making the command less modular and harder to test.
-
-By validating the index during construction, the implementation ensures that only logically valid `DeleteCommand` objects can be created. This makes runtime execution simpler and more focused on state mutation and user feedback. In addition, handling out-of-bounds indices during execution is appropriate because whether an index exists depends on the current state of the `TradeList`, which is only known at runtime.
-
-#### 2.2.5 Testing Strategy for `Ui` and `ListCommand`
-=======
 An alternative considered having `TradeList` maintain running totals internally (e.g., updating a `totalWins` and `totalLosses` variable every time an `add`, `delete`, or `edit` command is executed). This was rejected because it heavily couples the core data model to a specific reporting feature. It would also make state-changing operations significantly more complex and prone to synchronization bugs (e.g., if a user edits a trade from a "loss" to a "win", the `TradeList` would have to reverse previous mathematical operations).
 
 ---
 
 #### 2.2.6 Testing Strategy for `Ui` and `ListCommand`
->>>>>>> master
 
 Both `Ui` and `ListCommand` are tested using a `captureOutput` helper that temporarily redirects `System.out` to a `ByteArrayOutputStream`. This pattern avoids any dependency on mocking frameworks and works natively with JUnit 5.
 
@@ -383,11 +340,7 @@ The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works 
 * **Assertion Verification**: Although `assert` is typically for development, test environments are configured with `-ea` (enable assertions) to ensure that the internal null-checks added to `EditCommand` and `ListCommand` trigger correctly if invalid dependencies are provided.
 ---
 
-<<<<<<< n
-#### 2.2.6 [v2.0] Strategy Shortcut Expansion Feature
-=======
 #### 2.2.7 [v2.0] Strategy Shortcut Expansion Feature
->>>>>>> master
 
 ##### Overview
 
@@ -449,11 +402,7 @@ Expansion is done at parse time, not at display time. This means:
 
 ---
 
-<<<<<<< n
-#### 2.2.7 [v2.0] Strategy Comparison Feature (`compare` command)
-=======
 #### 2.2.8 [v2.0] Strategy Comparison Feature (`compare` command)
->>>>>>> master
 
 ##### Overview
 
