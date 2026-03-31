@@ -96,7 +96,66 @@ Centralising in `Ui` means tests can use a `MockUi` subclass (as seen in `Delete
 
 ---
 
-#### 2.2.2 ListCommand
+#### 2.2.2 Parser Component
+
+##### Architecture-Level Description
+
+The parsing architecture is responsible for translating raw user input from the CLI into executable `Command` objects. To maintain separation of concerns and ensure financial data integrity, this logic is decoupled into three distinct utility classes: `Parser` (the command router), `ArgumentTokeniser` (the string extractor), and `ParserUtil` (the domain validator).
+
+It takes the raw string, identifies the user's intent, extracts the variable data, enforces strict mathematical trading rules, and ultimately outputs a safe, validated command ready for execution.
+
+##### Component-Level Description
+
+```
+«utility»
+Parser
+  |
+  |-- parseCommand(userInput)
+        |
+        |-- routes to specific Command constructor
+        \-- throws TradeLogException on unknown command
+
+«utility»
+ArgumentTokeniser
+  |
+  \-- tokenise(userInput, prefixes)
+        |
+        \-- returns HashMap<String, String> of prefix-value pairs
+
+«utility»
+ParserUtil
+  |
+  |-- parsePrice(priceString, fieldName)
+  |-- parseTicker(ticker)
+  |-- parseDirection(direction)
+  |-- parseStrategy(strategy)
+  |-- validatePrices(entryPrice, stopLossPrice)
+  \-- validateStopLoss(direction, entryPrice, stopLossPrice)
+```
+
+The general parsing sequence for a complex command follows these steps:
+
+1. `Parser` intercepts the raw string, splitting it into a `commandWord` and an `arguments` string.
+
+2. A `switch` expression routes the `arguments` string to the corresponding `Command` constructor (e.g., `AddCommand`).
+
+3. The command constructor delegates the `arguments` string to `ArgumentTokeniser`, which extracts a map of prefix-value pairs (e.g., `t/` -> `AAPL`).
+
+4. The command extracts the mapped values and passes them to `ParserUtil` to enforce type safety (e.g., converting a string to a `double`) and trading logic (e.g., verifying stop-loss validity).
+
+5. Once fully validated, the fully instantiated `Command` object is returned to the logic manager.
+
+![Parser Sequence Diagram](diagrams/parser-sequence.png)
+
+##### Design Rationale
+
+**Centralisation of Validation:** An alternative considered was placing validation logic directly inside the respective `Command` classes (e.g., hardcoding the stop-loss verification inside `AddCommand`). This was rejected because it would lead to heavy code duplication across other commands that mutate trade states, such as `EditCommand`. Centralising this in `ParserUtil` keeps the commands as thin orchestrators and ensures mathematical trading rules are uniformly applied.
+
+**Tokenisation Data Structure:** `ArgumentTokeniser` returns a `HashMap<String, String>` rather than a `List` of pairs. This was chosen to provide O(1) lookup time when commands need to retrieve their required parameters by prefix key, improving code readability and performance during high-speed data entry.
+
+---
+
+#### 2.2.3 ListCommand
 
 ##### Architecture-Level Description
 
@@ -152,7 +211,7 @@ An alternative considered was to have `ListCommand` access `TradeList` directly 
 
 ---
 
-#### 2.2.3 AddCommand
+#### 2.2.4 AddCommand
 
 ##### Architecture-Level Description
 
@@ -192,16 +251,12 @@ User        TradeLog         Parser        AddCommand         Trade        Trade
 
 The alternative considered having the constructor simply store the raw user string, pushing all tokenizing and validation inside `execute()`. This was rejected because it violates the Single Responsibility Principle. It would bloat the `execute()` method with string manipulation, financial logic validation, memory updates, and UI updates all at once, making unit testing significantly more difficult.
 
-<<<<<<< n
-=======
 ---
 
->>>>>>> master
-#### 2.2.4 DeleteCommand
+#### 2.2.5 DeleteCommand
 
 ##### Architecture-Level Description
 
-<<<<<<< n
 The `DeleteCommand` is a core state-changing operation responsible for removing existing trades from the TradeLog system. It acts as the bridge between the `Parser` component (which supplies the raw user input), the `Model` component (by locating and deleting the specified `Trade` object from the in-memory `TradeList`), and the `Ui` component (by displaying either a successful deletion message or an error message if the index is invalid at runtime).
 
 To adhere to the principle of Separation of Concerns, the execution of the `delete` feature is explicitly split into two distinct phases: an initialization/validation phase, and an execution/mutation phase.
@@ -231,31 +286,6 @@ User        TradeLog         Parser       DeleteCommand       TradeList        T
 │             │               │               │──showTradeDeleted()───────────►│            │
 │             │               │               │◄───────────────────────────────│            │
 │             │◄──────────────────────────────│                 │              │            │
-=======
-`DeleteCommand` handles the removal of a specific logged trade from the application's memory. It relies heavily on boundary checking to ensure that users do not attempt to delete trades that do not exist, successfully mapping the user's 1-based visual index (seen in the UI) to the internal 0-based `ArrayList` index of the model.
-
-##### Component-Level Description
-
-The constructor of `DeleteCommand` accepts a string representing the target index. It first performs superficial validation—checking for empty strings, non-numeric characters, and negative numbers—and throws a `TradeLogException` immediately if the input is malformed.
-
-During `execute(tradeList, ui, storage)`, the command attempts to call `tradeList.deleteTrade(tradeIndex - 1)`. Because the `Parser` phase does not inherently know the current dynamic size of the `TradeList`, out-of-bounds errors cannot be caught during construction. Therefore, the `execute` method wraps the deletion call in a `try-catch` block targeting `IndexOutOfBoundsException`. If caught, it gracefully intercepts the crash and delegates an error message to `Ui.showError()`.
-
-##### Sequence Diagram — `delete` execution with boundary handling
-
-```
-TradeLog        DeleteCommand        TradeList             Ui
-│                  │                  │                  │
-│────execute()────►│                  │                  │
-│                  │──deleteTrade(i)─►│                  │
-│                  │                  │ [if valid]       │
-│                  │◄──deletedTrade───│                  │
-│                  │──printTrade()──────────────────────►│
-│                  │◄────────────────────────────────────│
-│                  │                  │ [if invalid]     │
-│                  │◄──throws IndexOutOfBoundsException──│
-│                  │──showError()───────────────────────►│
-│                  │◄────────────────────────────────────│
-│◄─────────────────│                  │                  │
 ```
 
 ##### Design Rationale
@@ -264,7 +294,7 @@ An alternative considered letting `DeleteCommand` throw the `IndexOutOfBoundsExc
 
 ---
 
-#### 2.2.5 SummaryCommand
+#### 2.2.6 SummaryCommand
 
 ##### Architecture-Level Description
 
@@ -300,24 +330,17 @@ TradeLog        SummaryCommand        TradeList             Ui
 │                  │──showSummary(metrics)──────────────►│
 │                  │◄────────────────────────────────────│
 │◄─────────────────│                   │                 │
->>>>>>> master
 ```
 
 ##### Design Rationale
 
-<<<<<<< n
 The alternative considered was having the constructor simply store the raw user string and defer all parsing and validation to `execute()`. This was rejected because it would violate the Single Responsibility Principle. It would cause the `execute()` method to handle input sanitization, integer parsing, validity checks, model mutation, and UI interaction all in one place, making the command less modular and harder to test.
 
 By validating the index during construction, the implementation ensures that only logically valid `DeleteCommand` objects can be created. This makes runtime execution simpler and more focused on state mutation and user feedback. In addition, handling out-of-bounds indices during execution is appropriate because whether an index exists depends on the current state of the `TradeList`, which is only known at runtime.
 
-#### 2.2.5 Testing Strategy for `Ui` and `ListCommand`
-=======
-An alternative considered having `TradeList` maintain running totals internally (e.g., updating a `totalWins` and `totalLosses` variable every time an `add`, `delete`, or `edit` command is executed). This was rejected because it heavily couples the core data model to a specific reporting feature. It would also make state-changing operations significantly more complex and prone to synchronization bugs (e.g., if a user edits a trade from a "loss" to a "win", the `TradeList` would have to reverse previous mathematical operations).
-
 ---
 
-#### 2.2.6 Testing Strategy for `Ui` and `ListCommand`
->>>>>>> master
+#### 2.2.7 Testing Strategy for `Ui` and `ListCommand`
 
 Both `Ui` and `ListCommand` are tested using a `captureOutput` helper that temporarily redirects `System.out` to a `ByteArrayOutputStream`. This pattern avoids any dependency on mocking frameworks and works natively with JUnit 5.
 
@@ -332,7 +355,7 @@ The two `ListCommandTest` cases cover:
 
 Both test classes confirm that **no state is mutated** by these components — they are pure output operations.
 
-#### 2.2.5 EditCommand
+#### 2.2.8 EditCommand
 
 ##### Architecture-Level Description
 The `EditCommand` allows users to modify existing trades within the `TradeList`. To minimize user friction, it supports **Partial Updates**, where only specified prefixes (e.g., `t/`, `e/`) are modified while others remain unchanged. The implementation prioritizes **Atomicity**: the command validates the entire "new state" of the trade before any internal data is overwritten.
@@ -373,7 +396,7 @@ TradeLog        EditCommand           TradeList              Trade          Ui
 * **Validation before Mutation**: Ensures that the `Model` never enters an invalid state (e.g., a Long position with a stop-loss above entry), maintaining data integrity.
 * **Assertions**: Used for internal invariants. If `tradeToEdit` is null despite passing the index check, it indicates a critical failure in the `Model`'s list management that requires immediate developer attention.
 
-#### 2.2.6 Testing Strategy for `EditCommand` and Assertions
+#### 2.2.9 Testing Strategy for `EditCommand` and Assertions
 
 The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works as intended.
 
@@ -383,11 +406,7 @@ The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works 
 * **Assertion Verification**: Although `assert` is typically for development, test environments are configured with `-ea` (enable assertions) to ensure that the internal null-checks added to `EditCommand` and `ListCommand` trigger correctly if invalid dependencies are provided.
 ---
 
-<<<<<<< n
-#### 2.2.6 [v2.0] Strategy Shortcut Expansion Feature
-=======
-#### 2.2.7 [v2.0] Strategy Shortcut Expansion Feature
->>>>>>> master
+#### 2.2.10 [v2.0] Strategy Shortcut Expansion Feature
 
 ##### Overview
 
@@ -449,11 +468,7 @@ Expansion is done at parse time, not at display time. This means:
 
 ---
 
-<<<<<<< n
-#### 2.2.7 [v2.0] Strategy Comparison Feature (`compare` command)
-=======
-#### 2.2.8 [v2.0] Strategy Comparison Feature (`compare` command)
->>>>>>> master
+#### 2.2.11 [v2.0] Strategy Comparison Feature (`compare` command)
 
 ##### Overview
 
@@ -541,7 +556,7 @@ Traders tend to think of their strategies in the order they used them, not alpha
 
 ---
 
-#### 2.2.9 Storage Component (Encrypted Persistence)
+#### 2.2.12 Storage Component (Encrypted Persistence)
 
 ##### Architecture-Level Description
 
@@ -594,7 +609,7 @@ Individual-line encryption makes the format robust: a single corrupted line affe
 
 ---
 
-#### 2.2.10 ProfileManager (Multi-Profile Support)
+#### 2.2.13 ProfileManager (Multi-Profile Support)
 
 ##### Architecture-Level Description
 
@@ -663,7 +678,7 @@ Silently creating a new profile on a password mismatch would produce spurious em
 
 ---
 
-#### 2.2.11 FilterCommand
+#### 2.2.14 FilterCommand
 
 ##### Architecture-Level Description
 

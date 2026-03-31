@@ -169,6 +169,33 @@ Total R: +11.50R
 --------------------------------------------------------------------------------
 ```
 
+### 5.6 Strategy Comparison: `compare`
+
+Use `compare` to view grouped performance metrics by strategy.
+
+**Example:** `compare`
+
+**Expected Output:**
+
+```text
+--------------------------------------------------------------------------------
+Strategy Comparison:
+
+Breakout:
+Trades: 15
+Win Rate: 60%
+Average Win: 2.02R
+Average Loss: 0.95R
+EV: +0.832R
+
+Pullback:
+Trades: 20
+Win Rate: 50%
+Average Win: 1.50R
+Average Loss: 1.00R
+EV: +0.250R
+--------------------------------------------------------------------------------
+```
 ### 5.6 Exiting the Program: `exit`
 Safely saves your data to the local text file and shuts down TradeLog.
 
@@ -191,7 +218,7 @@ Safely saves your data to the local text file and shuts down TradeLog.
 
 Accepted strategy shortcuts: `BB`, `TBF`, `PB`, `MTR`, `HOD`, `LOD`, `MR`, `TR`, `DB`, `DT`
 
-## 6. Strategy Shortcuts
+## 7. Strategy Shortcuts
 
 TradeLog expands common strategy abbreviations automatically before saving or filtering trades.
 
@@ -214,33 +241,6 @@ Example:
 
 TradeLog stores and displays that strategy as `Breakout`.
 
-## 7. Strategy Comparison
-
-Use `compare` to view grouped performance metrics by strategy.
-
-Example:
-
-`compare`
-
-Expected output format:
-
-```text
-Strategy Comparison:
-
-Breakout:
-Trades: 15
-Win Rate: 60%
-Average Win: 2.02R
-Average Loss: 0.95R
-EV: +0.832R
-
-Pullback:
-Trades: 20
-Win Rate: 50%
-Average Win: 1.50R
-Average Loss: 1.00R
-EV: +0.250R
-```
 ---
 
 ## 8. FAQ
