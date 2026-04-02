@@ -1,5 +1,13 @@
 package tradelog.logic.command;
 
-// Triggers the final save and closes the loop.
-public class ExitCommandTest {
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+class ExitCommandTest {
+
+    @Test
+    public void isExit_exitCommand_returnsTrue() {
+        assertTrue(new ExitCommand().isExit());
+    }
 }
