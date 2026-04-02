@@ -2,11 +2,11 @@
 skinparam Style strictuml
 skinparam SequenceMessageAlign center
 
-participant "TradeLog" as TL
-participant "EditCommand" as EC
-participant "TradeList" as TList
-participant "Trade" as T
-participant "Ui" as UI
+participant ":TradeLog" as TL
+participant ":EditCommand" as EC
+participant ":TradeList" as TList
+participant ":Trade" as T
+participant ":Ui" as UI
 
 TL -> EC : execute(...)
 activate EC

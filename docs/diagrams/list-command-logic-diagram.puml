@@ -1,0 +1,27 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide circles
+
+title Component-Level Description
+
+class " {abstract} \n Command " as Command {
+    --
+    +execute(tradeList, ui, storage)
+}
+
+class ListCommand {
+    --
+    +execute(tradeList, ui, storage)
+}
+
+entity Ui
+
+Command <|-- ListCommand
+ListCommand ..> Ui : calls printTradeList()
+
+note right of ListCommand::execute
+  <b>Logic:</b>
+  ui.printTradeList(tradeList)
+end note
+
+@enduml
