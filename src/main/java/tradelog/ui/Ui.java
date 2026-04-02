@@ -101,6 +101,26 @@ public class Ui {
     }
 
     /**
+     * Prints the trades at the specified original indices, preserving their
+     * numbering from the full trade list.
+     *
+     * @param tradeList The full list of trades.
+     * @param indices The zero-based indices of trades to print.
+     */
+    public void printIndexedTrades(TradeList tradeList, java.util.List<Integer> indices) {
+        assert tradeList != null : "TradeList should not be null";
+        assert indices != null : "Indices should not be null";
+
+        logger.log(Level.INFO, "Printing {0} filtered trade(s).", indices.size());
+
+        showLine();
+        for (int index : indices) {
+            System.out.println((index + 1) + ". " + tradeList.getTrade(index));
+        }
+        showLine();
+    }
+
+    /**
      * Prints the summary of a single trade.
      *
      * @param trade The trade to display.

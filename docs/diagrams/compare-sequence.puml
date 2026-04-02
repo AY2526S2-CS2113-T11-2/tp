@@ -1,11 +1,14 @@
 @startuml
 hide footbox
+skinparam Style strictuml
+skinparam SequenceMessageAlign center
 
-actor User
+participant "user" as User
 participant ":TradeLog" as TradeLog
 participant ":Parser" as Parser
-participant ":TradeList" as TradeList
-participant ":Trade" as Trade
+participant "cc:CompareCommand" as CompareCommand
+participant "tl:TradeList" as TradeList
+participant "t:Trade" as Trade
 participant ":Ui" as Ui
 
 User -> TradeLog : input "compare"
@@ -13,50 +16,55 @@ activate TradeLog
 
 TradeLog -> Parser : parseCommand("compare")
 activate Parser
-create participant "cc:CompareCommand" as CompareCommand
 Parser -> CompareCommand : new CompareCommand()
+activate CompareCommand
 Parser --> TradeLog : cc
 deactivate Parser
 
 TradeLog -> CompareCommand : execute(tradeList, ui, storage)
-activate CompareCommand
 
 CompareCommand -> TradeList : isEmpty()
 activate TradeList
-TradeList --> CompareCommand
+TradeList --> CompareCommand : isEmpty
 deactivate TradeList
 
-loop for each trade i = 0..size-1
-    CompareCommand -> TradeList : getTrade(i)
-    activate TradeList
-    TradeList --> CompareCommand : t
-    deactivate TradeList
+alt tradeList is empty
+    CompareCommand -> Ui : showSummaryEmpty()
+    activate Ui
+    Ui --> CompareCommand
+    deactivate Ui
+else tradeList is not empty
+    loop for each trade
+        CompareCommand -> TradeList : getTrade(i)
+        activate TradeList
+        TradeList --> CompareCommand : t
+        deactivate TradeList
 
-    CompareCommand -> Trade : getStrategy()
-    activate Trade
-    Trade --> CompareCommand : strategy
-    deactivate Trade
+        CompareCommand -> Trade : getStrategy()
+        activate Trade
+        Trade --> CompareCommand : strategy
+        deactivate Trade
 
-    CompareCommand -> Trade : getRiskRewardRatio()
-    activate Trade
-    Trade --> CompareCommand : rr
-    deactivate Trade
+        CompareCommand -> Trade : getRiskRewardRatio()
+        activate Trade
+        Trade --> CompareCommand : rr
+        deactivate Trade
 
-    create participant "ss:StrategyStats" as StrategyStats
-    CompareCommand -> StrategyStats : addTrade(rr)
-    activate StrategyStats
-    StrategyStats --> CompareCommand
-    deactivate StrategyStats
+        note over CompareCommand
+            looks up or creates the
+            corresponding StrategyStats
+            entry and accumulates rr
+        end note
+    end
+
+    CompareCommand -> Ui : showStrategyComparison(strategyComparison)
+    activate Ui
+    Ui --> CompareCommand
+    deactivate Ui
 end
-
-CompareCommand -> Ui : showStrategyComparison(statsMap)
-activate Ui
-Ui --> CompareCommand
-deactivate Ui
 
 CompareCommand --> TradeLog
 deactivate CompareCommand
-
 TradeLog --> User
 deactivate TradeLog
 @enduml

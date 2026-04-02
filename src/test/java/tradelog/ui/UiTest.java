@@ -43,6 +43,22 @@ class UiTest {
     }
 
     @Test
+    public void printIndexedTrades_selectedIndices_showsOriginalNumbering() {
+        Ui ui = new Ui();
+        TradeList tradeList = new TradeList();
+        tradeList.addTrade(new Trade("AAPL", "2026-02-18",
+                "Long", 180.0, 190.0, 170.0, "Win", "Breakout"));
+        tradeList.addTrade(new Trade("TSLA", "2026-02-19",
+                "Short", 400.0, 380.0, 410.0, "Win", "Pullback"));
+
+        String output = captureOutput(() -> ui.printIndexedTrades(tradeList, java.util.List.of(1)));
+
+        assertTrue(output.contains("2."));
+        assertTrue(output.contains("TSLA"));
+        assertTrue(!output.contains("1. AAPL"));
+    }
+
+    @Test
     public void showWelcome_containsWelcomeMessage() {
         Ui ui = new Ui();
         String output = captureOutput(ui::showWelcome);
