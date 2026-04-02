@@ -75,11 +75,7 @@ public class FilterCommand extends Command {
         if (matchingIndices.isEmpty()) {
             ui.showMessage("No trades match the filter criteria.");
         } else {
-            ui.showLine();
-            for (int index : matchingIndices) {
-                System.out.println((index + 1) + ". " + tradeList.getTrade(index));
-            }
-            ui.showLine();
+            ui.printIndexedTrades(tradeList, matchingIndices);
             SummaryCommand summaryCommand = new SummaryCommand();
             summaryCommand.execute(filteredTrades, ui, storage);
         }

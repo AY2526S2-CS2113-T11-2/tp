@@ -1,0 +1,41 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant Storage
+participant FileWriter
+participant TradeList
+participant Trade
+
+TradeLog -> Storage : saveTrades(tradeList)
+activate Storage
+
+create FileWriter
+Storage -> FileWriter : new FileWriter()
+activate FileWriter
+
+Storage -> FileWriter : write(passwordHash + "\\n")
+
+loop i=0..size-1
+    Storage -> TradeList : getTrade(i)
+    activate TradeList
+    TradeList --> Storage : Trade
+    deactivate TradeList
+
+    Storage -> Trade : toStorageString()
+    activate Trade
+    Trade --> Storage : "AAPL | 2026-... | ..."
+    deactivate Trade
+
+    Storage -> Storage : encrypt(line)
+    
+    Storage -> FileWriter : write(encryptedLine + "\\n")
+end
+
+Storage -> FileWriter : close()
+deactivate FileWriter
+
+Storage --> TradeLog
+deactivate Storage
+
+@enduml

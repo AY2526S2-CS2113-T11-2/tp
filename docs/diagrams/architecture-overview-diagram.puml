@@ -1,0 +1,28 @@
+@startuml
+skinparam Style strictuml
+skinparam ComponentStyle rectangle
+skinparam NoteBackgroundColor lightyellow
+
+component "User Input" as UI_IN
+component "Ui (Console Output)" as UI_OUT
+
+rectangle "TradeLog (Main Loop)" as Main {
+    component "Parser" as PRS
+    component "Command" as CMD #lightgreen
+    component "TradeList (Model)" as TList #lightskyblue
+    component "Storage" as STR
+}
+
+UI_IN ..> Main : inputs
+Main -> PRS : 1. parse
+PRS -right-> CMD : 2. create
+CMD --> TList : 3. update / query
+TList --> STR : 4. persist
+Main --> UI_OUT : 5. output
+
+note right of CMD
+  AddCommand / EditCommand / ...
+  (EditCommand involves atomicity logic)
+end note
+
+@enduml

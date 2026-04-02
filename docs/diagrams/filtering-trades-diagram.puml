@@ -1,0 +1,54 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant FilterCommand
+participant TradeList
+participant Ui
+participant SummaryCommand
+
+TradeLog -> FilterCommand : execute(tradeList, ui, storage)
+activate FilterCommand
+
+create "filteredTrades : TradeList" as FT
+FilterCommand -> FT : new TradeList()
+
+loop i=0..size-1
+    FilterCommand -> TradeList : getTrade(i)
+    activate TradeList
+    TradeList --> FilterCommand : Trade
+    deactivate TradeList
+    
+    note over FilterCommand : evaluate matchesTicker\nmatchesStrategy\nmatchesDate
+    
+    alt is a match
+        note over FilterCommand : add i to matchingIndices\nadd trade to filteredTrades
+    end
+end
+
+alt matchingIndices is empty
+    FilterCommand -> Ui : showMessage("No trades match...")
+else matches found
+    FilterCommand -> Ui : showLine()
+    loop for each index in matchingIndices
+        FilterCommand -> Ui : println((index + 1) + ". " + trade)
+    end
+    FilterCommand -> Ui : showLine()
+    
+    create SummaryCommand
+    FilterCommand -> SummaryCommand : new SummaryCommand()
+    
+    FilterCommand -> SummaryCommand : execute(filteredTrades, ui, storage)
+    activate SummaryCommand
+    SummaryCommand -> Ui : showSummary(...)
+    activate Ui
+    Ui --> SummaryCommand
+    deactivate Ui
+    SummaryCommand --> FilterCommand
+    deactivate SummaryCommand
+end
+
+FilterCommand --> TradeLog
+deactivate FilterCommand
+
+@enduml

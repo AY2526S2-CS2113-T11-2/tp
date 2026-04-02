@@ -1,0 +1,38 @@
+@startuml
+skinparam Style strictuml
+skinparam SequenceMessageAlign center
+
+participant "TradeLog" as TL
+participant "EditCommand" as EC
+participant "TradeList" as TList
+participant "Trade" as T
+participant "Ui" as UI
+
+TL -> EC : execute(...)
+activate EC
+
+EC -> TList : getTrade(idx)
+activate TList
+TList --> EC : tradeToEdit
+deactivate TList
+
+note over EC : Assert tradeToEdit != null\nValidate staged variables
+
+EC -> T : setTicker(...)
+activate T
+T --> EC
+deactivate T
+
+EC -> T : setEntry(...)
+activate T
+T --> EC
+deactivate T
+
+EC -> UI : showTradeUpdated(...)
+activate UI
+UI --> EC
+deactivate UI
+
+EC --> TL
+deactivate EC
+@enduml

@@ -1,11 +1,15 @@
 @startuml
 hide footbox
+skinparam Style strictuml
+skinparam SequenceMessageAlign center
 
-actor User
+participant "user" as User
 participant ":TradeLog" as TradeLog
 participant ":Parser" as Parser
+participant "ac:AddCommand" as AddCommand
 participant ":ParserUtil" as ParserUtil
-participant ":TradeList" as TradeList
+participant "t:Trade" as Trade
+participant "tl:TradeList" as TradeList
 participant ":Ui" as Ui
 
 User -> TradeLog : input "add ... strat/BB"
@@ -13,30 +17,22 @@ activate TradeLog
 
 TradeLog -> Parser : parseCommand(...)
 activate Parser
-
-create participant "ac:AddCommand" as AddCommand
 Parser -> AddCommand : new AddCommand(arguments)
 activate AddCommand
+Parser --> TradeLog : ac
+deactivate Parser
 
 AddCommand -> ParserUtil : parseStrategy("BB")
 activate ParserUtil
 ParserUtil --> AddCommand : "Breakout"
 deactivate ParserUtil
 
-create participant "t:Trade" as Trade
 AddCommand -> Trade : new Trade(..., "Breakout")
 activate Trade
 Trade --> AddCommand
 deactivate Trade
 
-AddCommand --> Parser : ac
-deactivate AddCommand
-
-Parser --> TradeLog : ac
-deactivate Parser
-
 TradeLog -> AddCommand : execute(tradeList, ui, storage)
-activate AddCommand
 AddCommand -> TradeList : addTrade(t)
 activate TradeList
 TradeList --> AddCommand
@@ -45,9 +41,12 @@ AddCommand -> Ui : printTrade(t)
 activate Ui
 Ui --> AddCommand
 deactivate Ui
+AddCommand -> Ui : showTradeAdded()
+activate Ui
+Ui --> AddCommand
+deactivate Ui
 AddCommand --> TradeLog
 deactivate AddCommand
-
 TradeLog --> User
 deactivate TradeLog
 @enduml

@@ -1,43 +1,39 @@
 @startuml
+skinparam Style strictuml
 skinparam classAttributeIconSize 0
 
 abstract class Command {
-    +execute(tradeList : TradeList, ui : Ui, storage : Storage) : void {abstract}
+    +execute(tradeList, ui, storage)
 }
 
 class CompareCommand {
-    +execute(tradeList : TradeList, ui : Ui, storage : Storage) : void
+    +execute(tradeList, ui, storage)
 }
 
 class StrategyStats {
-    -tradeCount : int
-    -winCount : int
-    -lossCount : int
-    -totalWinR : double
-    -totalLossR : double
-    +addTrade(rr : double) : void
+    +addTrade(rr)
 }
 
 class TradeList {
-    +isEmpty() : boolean
-    +size() : int
-    +getTrade(index : int) : Trade
+    +isEmpty()
+    +size()
+    +getTrade(index)
 }
 
 class Trade {
-    +getStrategy() : String
-    +getRiskRewardRatio() : double
+    +getStrategy()
+    +getRiskRewardRatio()
 }
 
 class Ui {
-    +showSummaryEmpty() : void
-    +showStrategyComparison(statsMap : Map) : void
+    +showSummaryEmpty()
+    +showStrategyComparison(strategyComparison)
 }
 
 Command <|-- CompareCommand
 CompareCommand ..> TradeList : uses
 CompareCommand ..> Ui : uses
-CompareCommand ..> StrategyStats : creates
+CompareCommand ..> StrategyStats : uses
 TradeList "1" *--> "*" Trade
 Ui ..> StrategyStats : uses
 @enduml

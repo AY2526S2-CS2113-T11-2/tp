@@ -97,6 +97,9 @@ public class EditCommand extends Command {
         // Note: teammate's validateStopLoss expects lowercase "long"/"short"
         ParserUtil.validateStopLoss(newDir.toLowerCase(), newEntry, newStop);
 
+        // Save state only after all parsing/validation succeeds
+        UndoCommand.saveState(tradeList);
+
         // 3. Atomicity: Commit changes only if ALL previous steps (Parsing & Validation) passed
         tradeToEdit.setTicker(newTicker);
         tradeToEdit.setDate(newDate);

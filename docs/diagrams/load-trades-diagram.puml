@@ -1,0 +1,48 @@
+@startuml
+hide footbox
+
+participant ProfileManager
+participant Storage
+participant BufferedReader
+participant TradeList
+participant Trade
+
+ProfileManager -> Storage : loadTrades()
+activate Storage
+
+create TradeList
+Storage -> TradeList : new TradeList()
+
+create BufferedReader
+Storage -> BufferedReader : new BufferedReader()
+activate BufferedReader
+
+Storage -> BufferedReader : readLine()
+BufferedReader --> Storage : storedHash
+
+alt storedHash != passwordHash
+    Storage --> ProfileManager : throw TradeLogException
+else password matches
+    loop while (line = readLine()) != null
+        Storage -> BufferedReader : readLine()
+        BufferedReader --> Storage : encryptedLine
+        
+        Storage -> Storage : decrypt(line)
+        Storage -> Storage : parse 8 fields
+        
+        create Trade
+        Storage -> Trade : new Trade(...)
+        
+        Storage -> TradeList : addTrade(trade)
+        activate TradeList
+        TradeList --> Storage
+        deactivate TradeList
+    end
+end
+
+deactivate BufferedReader
+
+Storage --> ProfileManager : TradeList
+deactivate Storage
+
+@enduml

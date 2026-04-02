@@ -76,6 +76,8 @@ public class AddCommand extends Command {
         assert addTrade != null : "addTrade object should have been successfully created in constructor";
         int initialSize = tradeList.size();
 
+        UndoCommand.saveState(tradeList);
+
         tradeList.addTrade(addTrade);
 
         assert tradeList.size() == initialSize + 1 : "TradeList size should increase by 1 after adding";

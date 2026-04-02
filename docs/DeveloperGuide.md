@@ -1,4 +1,4 @@
-# Developer Guide: TradeLog
+﻿# Developer Guide: TradeLog
 
 ## 1. Acknowledgements
 
@@ -16,73 +16,49 @@
 TradeLog follows a modular CLI architecture, separating concerns into four main components:
 
 * **Logic**: Handles prefix-based command parsing (e.g., `t/`, `d/`) and execution flow for commands.
-* **Model**: Encapsulates the `Trade` entity and the `TradeList` collection, handling in-memory data representation and ROI calculations.
-* **Storage**: Implements an **immediate-save mechanism**. After every successful state-changing command (add, edit, delete), the data is persisted to `tradelog.txt`.
+* **Model**: Encapsulates the `Trade` entity and the `TradeList` collection, handling in-memory trade data and `R`-multiple calculations.
+* **Storage**: Handles encrypted persistence of profile data in the `data/` directory. Trades are loaded at startup and saved when the application exits.
 * **UI**: Manages formatted console output and user interaction.
 
 The diagram below shows the high-level flow of a user command through the system:
 
-```
-User Input
-    │
-    ▼
-TradeLog (main loop)
-    │
-    ├──► Parser ──► Command (AddCommand / EditCommand / ...)
-    │                   │
-    │                   ▼
-    │              TradeList (Model)
-    │                   │
-    │                   ▼
-    │              Storage (persist)
-    │                   │
-    └──► Ui (output to console)
-```
+![Architecture overview diagram](diagrams/architecture-overview-diagram.png)
 
 ---
 
-### 2.2 Design & Implementation
+### 2.2 UI Component
 
 ---
-
-#### 2.2.1 UI Component
 
 ##### Architecture-Level Description
 
-The `Ui` class is TradeLog's sole output layer. All console interaction — welcome banners, trade displays, error messages, and performance summaries — is centralised here. No other class calls `System.out` directly. This single-responsibility design means that if the output format ever needs to change (e.g., migrating from CLI to a GUI), only `Ui` needs to be modified.
+The `Ui` class is TradeLog's primary console interaction component. It handles both output and selected input operations for the CLI, including welcome messages, trade displays, status feedback, error messages, and reading commands or credential prompts from the user.
 
-The `Ui` class depends on the `TradeList` and `Trade` model classes for display purposes but has no dependency on `Storage`, `Parser`, or any `Command`. This keeps coupling low and makes the class independently testable.
+`Ui` depends on `TradeList`, `Trade`, `StrategyStats`, and `ParserUtil` to format and present data, but it has no dependency on `Storage`, `Parser`, or any concrete `Command` class. This keeps the component broadly reusable across command flows and makes it straightforward to test in isolation by capturing console output.
+
+`Ui` serves as the console boundary for user-facing input and output, allowing command classes such as `ListCommand`, `FilterCommand`, and `SummaryCommand` to delegate presentation work rather than formatting console output themselves.
 
 ##### Component-Level Description
 
 `Ui` exposes the following categories of methods:
 
-| Method Category    | Examples                                                          | Purpose                            |
-|--------------------|-------------------------------------------------------------------|------------------------------------|
-| Lifecycle messages | `showWelcome()`, `showGoodbye()`                                  | Displayed on startup and exit      |
-| Trade display      | `printTradeList(TradeList)`, `printTrade(Trade)`                  | Format and print trade data        |
-| Feedback messages  | `showTradeAdded()`, `showTradeDeleted()`, `showTradeUpdated(int)` | Confirm successful operations      |
-| Summary display    | `showSummary(...)`, `showSummaryEmpty()`                          | Render performance metrics         |
-| Error display      | `showError(String)`                                               | Wrap all errors in a divider block |
+| Method Category        | Examples                                                                | Purpose                                            |
+|------------------------|-------------------------------------------------------------------------|----------------------------------------------------|
+| Input methods          | `readCommand()`, `readPassword(String)`, `readLine(String)`             | Read console input through a shared scanner        |
+| Lifecycle messages     | `showWelcome()`, `showGoodbye()`, `closeScanner()`                      | Start and end the CLI session cleanly              |
+| Trade display          | `printTradeList(TradeList)`, `printTrade(Trade)`                        | Format and print trade data                        |
+| Feedback messages      | `showTradeAdded()`, `showTradeDeleted()`, `showTradeUpdated(int)`       | Confirm successful state-changing operations       |
+| Summary display        | `showSummary(...)`, `showSummaryEmpty()`, `showStrategyComparison(...)` | Render aggregate and per-strategy performance data |
+| Undo and status output | `showUndoSuccess()`, `showUndoUnavailable()`, `showMessage(String)`     | Display general status updates                     |
+| Error display          | `showError(String)`                                                     | Wrap error output in a divider block               |
 
-All output is framed with a fixed 80-character divider line (`DIVIDER`) produced by `"-".repeat(80)`. This gives the CLI a consistent visual structure and separates logical output blocks for readability.
+The class keeps a shared `Scanner` as an instance field so the same input stream can be reused throughout the session. Output blocks are structured using a fixed 80-character divider line (`DIVIDER`) produced by `"-".repeat(80)`, which keeps the CLI visually consistent.
 
-Logging is embedded at the `INFO` level for successful operations and `WARNING` level for errors, using `java.util.logging.Logger`. This means that all UI interactions are traceable in the log output without polluting the console.
+Logging is embedded at the `INFO` level for normal interactions and `WARNING` level for errors using `java.util.logging.Logger`. This allows UI activity to be traced without changing the user-visible console format.
 
-##### Sequence Diagram — `list` command triggering `printTradeList`
+##### Sequence Diagram - `Ui.printTradeList(...)`
 
-```
-User          TradeLog        Parser        ListCommand        Ui
- │                │               │               │            │
- │─── "list" ────►│               │               │            │
- │                │──parseCommand►│               │            │
- │                │◄──ListCommand─│               │            │
- │                │──────────────execute──────────►│            │
- │                │               │               │─printTradeList(tradeList)──►│
- │                │               │               │            │── prints each trade
- │                │               │               │◄───────────│
- │                │◄──────────────│───────────────│            │
-```
+![Ui printTradeList sequence](diagrams/ui-print-trade-list-sequence.png)
 
 ##### Design Rationale
 
@@ -92,71 +68,149 @@ The alternative considered was to have each `Command` class print directly to `S
 2. Unit testing would require capturing `System.out` in every command test rather than in one place.
 3. Changing the output format (e.g., adding colour codes, or redirecting to a file) would require modifying every command.
 
-Centralising in `Ui` means tests can use a `MockUi` subclass (as seen in `DeleteCommandTest` and `SummaryCommandTest`) to intercept output and assert on values without any `System.out` redirection overhead.
+Keeping most console interaction in `Ui` also lets tests such as `UiTest` and `ListCommandTest` verify behavior by capturing output around a small number of focused methods.
+
+
+`Ui` is tested using a `captureOutput` helper that temporarily redirects `System.out` to a `ByteArrayOutputStream`. This keeps the tests lightweight and avoids any dependency on mocking frameworks. The `UiTest` cases cover empty list rendering, welcome message formatting, and error message wrapping.
 
 ---
-
-#### 2.2.2 ListCommand
+### 2.3 Parser Component
 
 ##### Architecture-Level Description
 
-`ListCommand` is one of the six core commands in v1.0. It is the simplest non-trivial command: it takes no arguments, performs no mutation of state, and delegates entirely to `Ui` for output. Its role is to bridge the user's request to view all trades with the display logic in `Ui`.
+The parsing architecture is responsible for translating raw user input from the CLI into executable `Command` objects. To maintain separation of concerns and ensure financial data integrity, this logic is decoupled into three distinct utility classes: `Parser` (the command router), `ArgumentTokeniser` (the string extractor), and `ParserUtil` (the domain validator).
+
+It takes the raw string, identifies the user's intent, extracts the variable data, enforces strict mathematical trading rules, and ultimately outputs a safe, validated command ready for execution.
+
+##### Component-Level Description
+
+```
+«utility»
+Parser
+  |
+  |-- parseCommand(userInput)
+        |
+        |-- routes to specific Command constructor
+        \-- throws TradeLogException on unknown command
+
+«utility»
+ArgumentTokeniser
+  |
+  \-- tokenise(userInput, prefixes)
+        |
+        \-- returns HashMap<String, String> of prefix-value pairs
+
+«utility»
+ParserUtil
+  |
+  |-- parsePrice(priceString, fieldName)
+  |-- parseTicker(ticker)
+  |-- parseDirection(direction)
+  |-- parseStrategy(strategy)
+  |-- validatePrices(entryPrice, stopLossPrice)
+  \-- validateStopLoss(direction, entryPrice, stopLossPrice)
+```
+
+The general parsing sequence for a complex command follows these steps:
+
+1. `Parser` intercepts the raw string, splitting it into a `commandWord` and an `arguments` string.
+
+2. A `switch` expression routes the `arguments` string to the corresponding `Command` constructor (e.g., `AddCommand`).
+
+3. The command constructor delegates the `arguments` string to `ArgumentTokeniser`, which extracts a map of prefix-value pairs (e.g., `t/` -> `AAPL`).
+
+4. The command extracts the mapped values and passes them to `ParserUtil` to enforce type safety (e.g., converting a string to a `double`) and trading logic (e.g., verifying stop-loss validity).
+
+5. Once fully validated, the fully instantiated `Command` object is returned to the logic manager.
+
+![Parser Sequence Diagram](diagrams/parser-sequence.png)
+
+##### Design Rationale
+
+**Centralisation of Validation:** An alternative considered was placing validation logic directly inside the respective `Command` classes (e.g., hardcoding the stop-loss verification inside `AddCommand`). This was rejected because it would lead to heavy code duplication across other commands that mutate trade states, such as `EditCommand`. Centralising this in `ParserUtil` keeps the commands as thin orchestrators and ensures mathematical trading rules are uniformly applied.
+
+**Tokenisation Data Structure:** `ArgumentTokeniser` returns a `HashMap<String, String>` rather than a `List` of pairs. This was chosen to provide O(1) lookup time when commands need to retrieve their required parameters by prefix key, improving code readability and performance during high-speed data entry.
+
+---
+
+### 2.4 Model Component
+
+##### Architecture-Level Description
+
+The model layer represents the application's in-memory trade data. Its main responsibilities are to store individual trades, expose collection-level operations over the current trade set, and provide the trade attributes needed by read-only analytics such as `summary`, `filter`, and `compare`.
+
+The central model classes are `Trade` and `TradeList`. `Trade` represents a single logged trade, while `TradeList` acts as the application's mutable collection of trades. Commands interact with the model through these classes rather than managing raw strings or low-level collections directly.
+
+##### Component-Level Description
+
+`Trade` stores the fields captured from user input, including ticker, date, direction, entry price, exit price, stop-loss price, outcome, and strategy. It also exposes derived values such as the trade's `R`-multiple, which are used by analytics features.
+
+`TradeList` wraps the current list of `Trade` objects and provides collection operations such as adding, deleting, retrieving, and iterating over trades. This keeps list-management behavior centralized and allows command classes to operate on a consistent abstraction.
+
+##### Design Rationale
+
+Separating `Trade` from `TradeList` keeps entity-level behavior and collection-level behavior distinct. This is simpler to reason about than storing everything in one large manager class and makes command logic easier to test because commands can work against a focused model API.
+
+---
+
+### 2.5 Storage Component
+
+##### Architecture-Level Description
+
+The storage layer is responsible for persistence of trade data across application runs. In the current version, it supports encrypted local profile files stored under the `data/` directory, with profile resolution handled at startup before the main command loop begins.
+
+This layer is centered around `Storage`, which reads and writes encrypted trade data, and `ProfileManager`, which determines which profile file to use based on the password entered by the user.
+
+##### Component-Level Description
+
+`Storage` handles serialization, encryption, decryption, and file access. It operates on `TradeList` data and does not depend on parsing or command classes.
+
+`ProfileManager` coordinates startup profile selection. It prompts for a password through `Ui`, attempts to match that password to an existing encrypted profile, and creates a new profile when required.
+
+##### Design Rationale
+
+Keeping persistence outside the command classes prevents file-handling and encryption logic from leaking into individual features such as `add`, `edit`, or `delete`. This separation also makes it easier to evolve the storage format independently from the CLI command flow.
+
+---
+
+### 2.6 ListCommand
+
+##### Architecture-Level Description
+
+`ListCommand` is a simple read-only command that displays all currently logged trades. It takes no arguments, performs no mutation of application state, and delegates the presentation work to `Ui`. Its role is to bridge the user's `list` request to the existing trade-list rendering logic.
 
 It extends `Command`, the abstract base class that defines the `execute(TradeList, Ui, Storage)` contract. Because `ListCommand` does not exit the application, it inherits the default `isExit()` return value of `false`.
 
 ##### Component-Level Description
 
-```
-«abstract»
-Command
-    │
-    └── ListCommand
-            │
-            └── execute(tradeList, ui, storage)
-                    │
-                    └── ui.printTradeList(tradeList)
-```
+![List command logic diagram](diagrams/list-command-logic-diagram.png)
 
 The `execute` method:
 
 1. Asserts that `tradeList` and `ui` are non-null (defensive programming).
-2. Logs the trade count at `INFO` level before delegation.
+2. Logs the current trade count at `INFO` level.
 3. Calls `ui.printTradeList(tradeList)`, which handles both the empty-list case and the populated-list case.
 4. Logs successful completion.
 
 The `storage` parameter is accepted by the method signature (to satisfy the `Command` contract) but is deliberately unused, as listing trades requires no persistence interaction.
 
-##### Sequence Diagram — Full `list` execution path
+##### Sequence Diagram - Full `list` command flow
 
-```
-TradeLog        ListCommand           Ui               TradeList
-    │                │                 │                   │
-    │──execute(...)──►│                 │                   │
-    │                │──printTradeList──►│                   │
-    │                │                 │──size()────────────►│
-    │                │                 │◄── int ────────────│
-    │                │                 │ [if empty]         │
-    │                │                 │── println("No trades logged yet.")
-    │                │                 │ [else]             │
-    │                │                 │  loop i=0..size-1  │
-    │                │                 │──getTrade(i)───────►│
-    │                │                 │◄── Trade ──────────│
-    │                │                 │── println(trade)   │
-    │                │◄────────────────│                    │
-    │◄───────────────│                 │                    │
-```
+![List command sequence](diagrams/list-command-sequence.png)
 
 ##### Design Rationale
 
-An alternative considered was to have `ListCommand` access `TradeList` directly and format the output itself. This was rejected for the same centralisation reason described in the `Ui` section: it would duplicate formatting logic and make the output inconsistent with other commands. The current design keeps `ListCommand` as a thin orchestrator — it knows *when* to display trades, but not *how*.
+An alternative considered was to have `ListCommand` access `TradeList` directly and format the output itself. This was rejected for the same centralisation reason described in the `Ui` section: it would duplicate formatting logic and make the output inconsistent with other commands. The current design keeps `ListCommand` as a thin orchestrator - it knows *when* to display trades, but not *how*.
+
+
+`ListCommand` is tested using the same `captureOutput` pattern as `Ui`. The `ListCommandTest` cases verify that the command delegates correctly to `Ui` for display and that `isExit()` remains `false`, confirming that the command is read-only and does not terminate the application.
 
 ---
-
-#### 2.2.3 AddCommand
+### 2.7 AddCommand
 
 ##### Architecture-Level Description
 
-The `AddCommand` is a core state-changing operation responsible for introducing new trades into the TradeLog system. It acts as the primary bridge between the `Parser` component (which supplies the raw user input), the `Model` component (by instantiating new `Trade` objects and updating the in-memory `TradeList`), and the `Storage` component (triggering the immediate-save mechanism to persist the new data).
+The `AddCommand` is a core state-changing operation responsible for introducing new trades into the TradeLog system. It acts as the primary bridge between the `Parser` component (which supplies the raw user input), the `Model` component (by instantiating new `Trade` objects and updating the in-memory `TradeList`), and the `Ui` component (by showing the resulting trade summary and confirmation message).
 
 To adhere to the principle of Separation of Concerns, the execution of the `add` feature is explicitly split into two distinct phases: an initialization/validation phase, and an execution/mutation phase.
 
@@ -164,7 +218,7 @@ To adhere to the principle of Separation of Concerns, the execution of the `add`
 
 1. Construction & Validation Phase: When the user inputs an `add` command, the `Parser` creates a new `AddCommand(String arguments)`. The constructor immediately passes the raw string to the `ArgumentTokeniser` to map prefixes to their respective string values. It then utilizes `ParserUtil` to strictly validate the financial logic of the inputs (e.g., ensuring a `long` position does not have a stop-loss higher than the entry price, and checking that all prices are valid positive numbers). If any validation fails during this step, a `TradeLogException` is thrown before the `TradeList` or `Storage` is ever accessed.
 
-2. Execution Phase: Once the `AddCommand` is successfully instantiated with a fully valid `Trade` object held in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command appends the new trade to the `TradeList`, triggers the `Ui` to display a confirmation message with the formatted trade details, and implicitly relies on the main loop's architecture to save the newly updated state to the text file.
+2. Execution Phase: Once the `AddCommand` is successfully instantiated with a fully valid `Trade` object held in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command appends the new trade to the `TradeList` and triggers the `Ui` to display a confirmation message with the formatted trade details. Persistence is handled separately by the application's shutdown flow.
 
 ##### Sequence Diagram — Full `add` execution path
 
@@ -194,34 +248,37 @@ The alternative considered having the constructor simply store the raw user stri
 
 ---
 
-#### 2.2.4 DeleteCommand
+### 2.8 DeleteCommand
 
 ##### Architecture-Level Description
 
-`DeleteCommand` handles the removal of a specific logged trade from the application's memory. It relies heavily on boundary checking to ensure that users do not attempt to delete trades that do not exist, successfully mapping the user's 1-based visual index (seen in the UI) to the internal 0-based `ArrayList` index of the model.
+The `DeleteCommand` is a core state-changing operation responsible for removing existing trades from the TradeLog system. It acts as the bridge between the `Parser` component (which supplies the raw user input), the `Model` component (by locating and deleting the specified `Trade` object from the in-memory `TradeList`), and the `Ui` component (by displaying either a successful deletion message or an error message if the index is invalid at runtime).
+
+To adhere to the principle of Separation of Concerns, the execution of the `delete` feature is explicitly split into two distinct phases: an initialization/validation phase, and an execution/mutation phase.
 
 ##### Component-Level Description
 
-The constructor of `DeleteCommand` accepts a string representing the target index. It first performs superficial validation—checking for empty strings, non-numeric characters, and negative numbers—and throws a `TradeLogException` immediately if the input is malformed.
-
-During `execute(tradeList, ui, storage)`, the command attempts to call `tradeList.deleteTrade(tradeIndex - 1)`. Because the `Parser` phase does not inherently know the current dynamic size of the `TradeList`, out-of-bounds errors cannot be caught during construction. Therefore, the `execute` method wraps the deletion call in a `try-catch` block targeting `IndexOutOfBoundsException`. If caught, it gracefully intercepts the crash and delegates an error message to `Ui.showError()`.
-
-##### Sequence Diagram — `delete` execution with boundary handling
+1. Construction & Validation Phase: When the user inputs a `delete` command, the `Parser` creates a new `DeleteCommand(String arguments)`. The constructor immediately trims the raw argument string and validates that it is neither missing nor blank. It then attempts to parse the argument into an integer index. If the input is not a valid integer, or if the parsed value is less than or equal to zero, a `TradeLogException` is thrown before the `TradeList` or `Ui` is ever accessed. 
+2. Execution Phase: Once the `DeleteCommand` is successfully instantiated with a valid positive index stored in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command converts the user-facing 1-based index into the system’s internal 0-based index and attempts to remove the corresponding `Trade` from the `TradeList`. If the deletion succeeds, the deleted trade is printed and a confirmation message is shown through the `Ui`. If the index is out of bounds, the command catches the resulting `IndexOutOfBoundsException` and displays an error message instead. As with other state-changing commands, persistence is handled by the main loop architecture after successful execution.
 
 ```
-TradeLog        DeleteCommand        TradeList             Ui
-│                  │                  │                  │
-│────execute()────►│                  │                  │
-│                  │──deleteTrade(i)─►│                  │
-│                  │                  │ [if valid]       │
-│                  │◄──deletedTrade───│                  │
-│                  │──printTrade()──────────────────────►│
-│                  │◄────────────────────────────────────│
-│                  │                  │ [if invalid]     │
-│                  │◄──throws IndexOutOfBoundsException──│
-│                  │──showError()───────────────────────►│
-│                  │◄────────────────────────────────────│
-│◄─────────────────│                  │                  │
+User        TradeLog         Parser       DeleteCommand       TradeList        Trade         Ui
+│             │               │               │                 │              │            │
+│─"delete 2"─►│               │               │                 │              │            │
+│             │─parseCommand─►│               │                 │              │            │
+│             │               │─new DeleteCmd(arguments)───────►│              │            │
+│             │               │               │                 │              │            │
+│             │               │◄──────DeleteCommand─────────────│              │            │
+│             │◄──────────────│               │                 │              │            │
+│             │               │               │                 │              │            │
+│             │────────────execute(tradeList, ui, storage)─────►│              │            │
+│             │               │               │──deleteTrade()─►│              │            │
+│             │               │               │◄──deletedTrade──│              │            │
+│             │               │               │──printTrade(deletedTrade)─────►│            │
+│             │               │               │◄───────────────────────────────│            │
+│             │               │               │──showTradeDeleted()───────────►│            │
+│             │               │               │◄───────────────────────────────│            │
+│             │◄──────────────────────────────│                 │              │            │
 ```
 
 ##### Design Rationale
@@ -230,7 +287,7 @@ An alternative considered letting `DeleteCommand` throw the `IndexOutOfBoundsExc
 
 ---
 
-#### 2.2.5 SummaryCommand
+### 2.9 SummaryCommand
 
 ##### Architecture-Level Description
 
@@ -270,26 +327,13 @@ TradeLog        SummaryCommand        TradeList             Ui
 
 ##### Design Rationale
 
-An alternative considered having `TradeList` maintain running totals internally (e.g., updating a `totalWins` and `totalLosses` variable every time an `add`, `delete`, or `edit` command is executed). This was rejected because it heavily couples the core data model to a specific reporting feature. It would also make state-changing operations significantly more complex and prone to synchronization bugs (e.g., if a user edits a trade from a "loss" to a "win", the `TradeList` would have to reverse previous mathematical operations).
+The alternative considered was having the constructor simply store the raw user string and defer all parsing and validation to `execute()`. This was rejected because it would violate the Single Responsibility Principle. It would cause the `execute()` method to handle input sanitization, integer parsing, validity checks, model mutation, and UI interaction all in one place, making the command less modular and harder to test.
+
+By validating the index during construction, the implementation ensures that only logically valid `DeleteCommand` objects can be created. This makes runtime execution simpler and more focused on state mutation and user feedback. In addition, handling out-of-bounds indices during execution is appropriate because whether an index exists depends on the current state of the `TradeList`, which is only known at runtime.
 
 ---
 
-#### 2.2.6 Testing Strategy for `Ui` and `ListCommand`
-
-Both `Ui` and `ListCommand` are tested using a `captureOutput` helper that temporarily redirects `System.out` to a `ByteArrayOutputStream`. This pattern avoids any dependency on mocking frameworks and works natively with JUnit 5.
-
-The three `UiTest` cases cover:
-- Empty list rendering (`printTradeList` with no trades).
-- Welcome message format (`showWelcome`).
-- Error message wrapping (`showError`).
-
-The two `ListCommandTest` cases cover:
-- That the command correctly delegates to `Ui` and produces the empty-list message.
-- That `isExit()` returns `false`, confirming it does not terminate the application.
-
-Both test classes confirm that **no state is mutated** by these components — they are pure output operations.
-
-#### 2.2.5 EditCommand
+### 2.10 EditCommand
 
 ##### Architecture-Level Description
 The `EditCommand` allows users to modify existing trades within the `TradeList`. To minimize user friction, it supports **Partial Updates**, where only specified prefixes (e.g., `t/`, `e/`) are modified while others remain unchanged. The implementation prioritizes **Atomicity**: the command validates the entire "new state" of the trade before any internal data is overwritten.
@@ -307,30 +351,14 @@ The `execute(tradeList, ui, storage)` method performs the following logic:
 
 ##### Sequence Diagram — `edit` execution path
 
-````
-TradeLog        EditCommand           TradeList              Trade          Ui
-│                 │                     │                   │               │
-│──execute(...)──►│                     │                   │               │
-│                 │──getTrade(idx)────► │                   │               │
-│                 │◄── tradeToEdit ──── │                   │               │
-│                 │                     │                   │               │
-│                 │─── [Assert tradeToEdit != null] ───────►│               │
-│                 │─── [Validate staged variables] ────────►│               │
-│                 │                     │                   │               │
-│                 │──setTicker(...)────►│                   │               │
-│                 │──setEntry(...)─────►│                   │               │
-│                 │                     │                   │               │
-│                 │──showTradeUpdated──►│                   │               │
-│                 │◄────────────────────│                   │               │
-│◄────────────────│                     │                   │               │
+![Editing trades logic diagram](diagrams/editing-trade-logic-diagram.png)
 
-````
 ##### Design Rationale
 * **Partial Updates**: Chosen over full replacement because trades contain 8+ fields; forcing a user to re-input all data to fix one typo (e.g., in a Ticker) is inefficient for a CLI tool.
 * **Validation before Mutation**: Ensures that the `Model` never enters an invalid state (e.g., a Long position with a stop-loss above entry), maintaining data integrity.
 * **Assertions**: Used for internal invariants. If `tradeToEdit` is null despite passing the index check, it indicates a critical failure in the `Model`'s list management that requires immediate developer attention.
 
-#### 2.2.6 Testing Strategy for `EditCommand` and Assertions
+### 2.11 Testing Strategy for `EditCommand` and Assertions
 
 The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works as intended.
 
@@ -340,7 +368,69 @@ The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works 
 * **Assertion Verification**: Although `assert` is typically for development, test environments are configured with `-ea` (enable assertions) to ensure that the internal null-checks added to `EditCommand` and `ListCommand` trigger correctly if invalid dependencies are provided.
 ---
 
-#### 2.2.7 [v2.0] Strategy Shortcut Expansion Feature
+### 2.12 FilterCommand
+
+##### Architecture-Level Description
+
+`FilterCommand` provides read-only querying of the in-memory `TradeList` without modifying any state. It supports filtering by up to three independent criteria — **ticker**, **strategy**, and **date** — applied as a logical AND. It also supports an optional **partial-match mode** (`-p` flag) that uses substring/case-insensitive matching instead of exact equality.
+
+After displaying the matched trades, `FilterCommand` delegates to `SummaryCommand` on the filtered subset, giving the user performance metrics for just the filtered trades without any extra command.
+
+
+The constructor parses the argument string in two steps:
+
+1. `ArgumentTokeniser.tokenise` extracts the values for `t/`, `strat/`, and `d/`. Missing prefixes default to empty strings.
+2. The `-p` flag is detected by checking whether the raw argument array contains the literal string `"-p"`.
+3. If all three criteria are empty after parsing, a `TradeLogException` is thrown: at least one filter must be provided.
+
+The `execute` method:
+
+1. Iterates through all trades in `tradeList`.
+2. For each trade, evaluates three boolean conditions (`matchesTicker`, `matchesStrategy`, `matchesDate`). An empty criterion always evaluates to `true` (i.e., it is not applied).
+3. **Exact mode** (default): uses `equals` for ticker and date, `equalsIgnoreCase` for strategy.
+4. **Partial mode** (`-p`): uses `contains` for ticker and date, `toLowerCase().contains(toLowerCase())` for strategy.
+5. Matching trades are collected into both an index list (for display with their original 1-based numbers) and a new `TradeList` (for the summary calculation).
+6. If no matches are found, `ui.showMessage("No trades match the filter criteria.")` is called.
+7. If matches are found, the matched trades are printed with their original indices, then `SummaryCommand.execute(filteredTrades, ui, storage)` is called on the subset.
+
+##### Sequence Diagram — `filter t/AAPL` with two trades in list
+![Filtering Trades Diagram](diagrams/filtering-trades-diagram.png)
+
+##### Supported Filter Criteria
+
+| Prefix   | Field matched | Exact mode         | Partial mode (`-p`)                                                   |
+|----------|---------------|--------------------|-----------------------------------------------------------------------|
+| `t/`     | Ticker symbol | `equals`           | `contains`                                                            |
+| `strat/` | Strategy name | `equalsIgnoreCase` | case-insensitive `contains`                                           |
+| `d/`     | Trade date    | `equals`           | `contains` (useful for filtering by year or month, e.g., `d/2026-03`) |
+
+##### Usage Examples
+
+```
+filter t/AAPL                        → exact ticker match
+filter strat/Breakout d/2026-03      → trades with Breakout strategy in March 2026
+filter -p t/AA                       → all tickers containing "AA" (e.g., AAPL, AAVE)
+filter -p strat/break                → case-insensitive partial strategy match
+```
+
+##### Design Rationale
+
+**Why delegate the summary to `SummaryCommand` rather than duplicating the logic?**
+`SummaryCommand` already computes win rate, average win/loss, EV, and total R from a `TradeList`. Delegating avoids duplication and guarantees that the filtered-subset metrics are always consistent with the full-list metrics produced by `summary`.
+
+**Why use original 1-based indices (from the full list) when displaying filtered results?**
+Displaying the original index allows the user to immediately act on a filtered result — for example, using `edit 3` or `delete 3` on a trade found via `filter` without needing to re-run `list` to look up the index.
+
+**Why require at least one criterion instead of allowing `filter` with no arguments to return all trades?**
+`filter` with no criteria would be functionally identical to `list`. Requiring at least one criterion prevents accidental no-op calls and keeps the command's intent clear.
+
+**Alternatives considered:**
+- **Separate `filter-partial` command**: Rejected. Having `-p` as an inline flag keeps the command surface small and the user does not need to remember two separate command names.
+- **Chained filter pipeline (filter feeds into another filter)**: Considered as a future feature. The current AND-of-criteria design handles the most common cases; a pipeline could be introduced if users need OR logic.
+
+---
+
+### 2.13 Strategy Shortcut Expansion Feature
 
 ##### Overview
 
@@ -361,7 +451,11 @@ The supported shortcuts are:
 | `DB`     | Double Bottom          |
 | `DT`     | Double Top             |
 
-##### Implementation
+##### Architecture-Level Description
+
+The strategy shortcut feature is implemented as part of the parser-side normalization flow. Strategy names are standardized before a `Trade` is constructed, so downstream commands operate on canonical strategy names rather than user-entered abbreviations.
+
+##### Component-Level Description
 
 The expansion is implemented as a static lookup in `ParserUtil.parseStrategy(String)`.
 This strategy parsing pipeline is used by `AddCommand`, `EditCommand`, and `FilterCommand`.
@@ -386,7 +480,7 @@ If the input does not match any known shortcut, it is returned unchanged. This m
 
 ![Strategy shortcut expansion sequence](diagrams/strategy-shortcut-add-sequence.png)
 
-##### Why Implemented This Way
+##### Design Rationale
 
 Expansion is done at parse time, not at display time. This means:
 
@@ -402,7 +496,7 @@ Expansion is done at parse time, not at display time. This means:
 
 ---
 
-#### 2.2.8 [v2.0] Strategy Comparison Feature (`compare` command)
+### 2.14 Strategy Comparison Feature (`compare` command)
 
 ##### Overview
 
@@ -430,7 +524,7 @@ Average Loss: 1.00R
 EV: +0.250R
 ```
 
-##### Architecture-Level Design
+##### Architecture-Level Description
 
 The `compare` command follows the same architecture as every other command in TradeLog. It fits into the existing structure without requiring any changes to `TradeLog`, `TradeList`, or `Storage`.
 
@@ -488,126 +582,255 @@ Traders tend to think of their strategies in the order they used them, not alpha
 - **A `filterByStrategy` method on `TradeList`**: This was considered to avoid iterating through all trades in `CompareCommand`. However, it would require multiple passes (one per unique strategy), making it O(n x k) where `k` is the number of strategies. The single-pass accumulation approach is O(n) and simpler.
 - **Storing `StrategyStats` inside `TradeList` as a cached field**: Rejected because it would couple the model to a specific reporting concept and require cache invalidation on every add/edit/delete.
 
+---
 
-## 3. Product Scope
+### 2.15 Storage Component (Encrypted Persistence)
 
-### 3.1 Target User Profile
+##### Architecture-Level Description
+
+`Storage` is the sole class responsible for reading and writing trade data to disk. All data is encrypted at rest using **AES-128** symmetric encryption. The encryption key is derived from the user's password via a **SHA-256** hash, with only the first 16 bytes used to form the AES key. No plaintext trade records are ever written to the file.
+
+The file format is:
+
+```
+<SHA-256 password hash (Base64)>
+<AES-encrypted trade line 1 (Base64)>
+<AES-encrypted trade line 2 (Base64)>
+...
+```
+
+The first line is the Base64-encoded SHA-256 hash of the password. This is used on load to verify that the correct password has been provided before any decryption is attempted.
+
+`Storage` has no dependency on `Ui`, `Parser`, or any `Command`. It only depends on `TradeList` and `Trade` from the model layer, keeping coupling minimal.
+
+##### Component-Level Description
+
+| Method                  | Responsibility                                                                                                                                                       |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `setPassword(String)`   | Derives the AES key and stores the password hash. Must be called before `saveTrades` or `loadTrades`.                                                                |
+| `saveTrades(TradeList)` | Creates parent directories if needed, writes the password hash on line 1, then writes one AES-encrypted, Base64-encoded trade string per line.                       |
+| `loadTrades()`          | Reads line 1 and compares it to `passwordHash`. If it matches, decrypts each subsequent line, parses the 8-field pipe-delimited format, and populates a `TradeList`. |
+| `exists()`              | Returns whether the underlying file is present on disk. Used by `ProfileManager` during startup.                                                                     |
+
+The encryption and decryption use Java's `javax.crypto.Cipher` in `AES/ECB` mode (the default single-block `"AES"` transformation). Each trade's `toStorageString()` output (pipe-delimited) is individually encrypted and Base64-encoded before being written as a line.
+
+##### Sequence Diagram — `saveTrades` on exit
+![Save Trades on exit Sequence Diagram](diagrams/save-trades-on-exit-diagram.png)
+
+##### Sequence Diagram — `loadTrades` on startup
+![Load Trades Diagram](diagrams/load-trades-diagram.png)
+
+##### Design Rationale
+
+**Why derive the key from a password hash rather than storing the key directly?**
+The password hash acts as both the AES key seed and the per-file identity marker (the first line of each profile file). This allows `ProfileManager` to determine which file belongs to which user without storing any plaintext credential.
+
+**Why AES-128 and not AES-256?**
+AES-128 (16-byte key) is sufficient for protecting trade records from casual access. Moving to AES-256 would require only changing the `Arrays.copyOf` length from 16 to 32; the rest of the implementation is unchanged.
+
+**Why encrypt each trade line independently rather than the whole file?**
+Individual-line encryption makes the format robust: a single corrupted line affects only that trade, not the rest of the file. It also maps naturally to the line-by-line read loop in `loadTrades`.
+
+**Alternatives considered:**
+- **Storing plaintext**: Rejected. A trader's position sizes, entry/exit prices, and strategies are commercially sensitive. Plaintext storage would expose this data to anyone with filesystem access.
+- **Storing only a password prompt and trusting the key**: Rejected because without the stored hash on line 1, `ProfileManager` would have no way to distinguish a wrong-password decryption failure from a corrupted file.
+
+---
+
+### 2.16 ProfileManager (Multi-Profile Support)
+
+##### Architecture-Level Description
+
+`ProfileManager` is the startup component that resolves which storage file belongs to the current user. It sits between `TradeLog`'s constructor and the `Storage` class, and is the only class that knows how multiple profile files are named or how to scan them.
+
+The password is **not** passed in from `TradeLog`. Instead, `ProfileManager` reads it interactively from the user via `Ui.readPassword()` at startup, displaying a context-sensitive prompt depending on whether any profile files already exist.
+
+Profile files follow the naming convention:
+
+```
+<baseDir>/<baseName>.txt          ← index 0 (the default)
+<baseDir>/<baseName>_1.txt        ← index 1
+<baseDir>/<baseName>_2.txt        ← index 2
+...
+```
+
+Each file belongs to exactly one password (identified by the SHA-256 hash stored on its first line). `findNextAvailablePath()` determines the path for a new profile by scanning for the first suffix index whose file does not yet exist.
+
+##### Component-Level Description
+
+The constructor `ProfileManager(String baseDir, String baseName, Ui ui)` runs the following logic:
+
+1. **Determine whether any profile files exist** by checking if `<baseDir>/<baseName>.txt` is present on disk.
+2. **Prompt for a password** via `ui.readPassword(prompt)`:
+   - If no files exist: `"No profiles found. Create a new password:"`
+   - If files exist: `"Enter password to load your profile (or create a new one):"`
+3. **Branch on file existence:**
+   - **No files exist** → call `createNewProfile(...)` immediately with message `"No existing profile found. Creating new profile..."` and exit.
+   - **Files exist** → call `tryLoadExistingProfile(...)`:
+     - **Returns `true`** (password matched a file): constructor exits successfully.
+     - **Returns `false`** (no file matched the password): prompt the user `"No profile found for the entered password. Create a new profile? (yes/no):"`.
+       - If the user answers `"yes"`: call `createNewProfile(...)` with message `"Creating new profile..."` and exit.
+       - If the user answers anything else: loop back to step 2 and re-prompt for the password.
+
+After the constructor completes, `getActiveStorage()` and `getLoadedTrades()` pass the result to `TradeLog`.
+
+| Method                                                 | Responsibility                                                                                                                              |
+|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `ProfileManager(String, String, Ui)`                   | Interactive startup: prompts for password, finds or creates the matching profile.                                                           |
+| `tryLoadExistingProfile(String, String, String, Ui)`   | Iterates over existing numbered files, attempts `setPassword` + `loadTrades` on each; returns `true` on a hash match.                       |
+| `createNewProfile(String, String, String, Ui, String)` | Finds the next available file path, initialises a fresh `Storage`, calls `setPassword`, and sets `loadedTrades` to a new empty `TradeList`. |
+| `findNextAvailablePath(String, String)`                | Returns the first `<baseDir>/<baseName>_N.txt` path (or `<baseName>.txt` for index 0) that does not yet exist on disk.                      |
+| `getActiveStorage()`                                   | Returns the `Storage` instance resolved during construction.                                                                                |
+| `getLoadedTrades()`                                    | Returns the `TradeList` loaded (or newly created) during construction.                                                                      |
+
+##### Sequence Diagram — startup with an existing matching profile
+![Existing Matching Profile Diagram](diagrams/existing-matching-profile-diagram.png)
+
+##### Sequence Diagram — startup when password does not match, user opts to create new profile
+![Password Mismatch and New Profile Creation Diagram](diagrams/password-mismatch-and-new-profile-creation-diagram.png)
+
+##### Design Rationale
+
+**Why does `ProfileManager` read the password interactively rather than receiving it as a constructor argument?**
+Keeping password acquisition inside `ProfileManager` avoids passing a sensitive credential through `TradeLog`'s constructor. `ProfileManager` owns the full login loop — prompting, validating, and retrying — without exposing that state to its caller.
+**Why scan files sequentially rather than encoding the profile index in the file itself?**
+Keeping profile selection implicit (driven purely by password matching) means the user never needs to remember a profile number. The password is the sole credential.
+
+**Why prompt the user before creating a new profile when no match is found?**
+Silently creating a new profile on a password mismatch would produce spurious empty profiles from typographical errors. The `yes/no` confirmation lets the user retry their password instead, preventing unintended profile proliferation.
+
+**Alternatives considered:**
+- **Single file for all users**: Rejected. A single file would require a more complex internal structure to separate users' data and would make per-user password protection harder.
+- **Using a directory per user**: Considered but rejected for simplicity. The sequential suffix convention is easy to implement and requires no directory management.
+
+---
+
+## Appendix A: Product Scope
+
+### A.1 Target User Profile
 
 **Daniel** is a proprietary trader who works independently and relies heavily on data to refine his trading strategies. He spends most of his day analysing charts and executing trades, and prefers fast, keyboard-based tools over graphical interfaces. He values efficiency, accuracy, and structured data analysis to improve his trading performance.
 
-### 3.2 Value Proposition
+### A.2 Value Proposition
 
-Provides a CLI-based, systematic way to log trades and test systems that is faster and more efficient than logging trades on Google Sheets. Has the ability to automatically calculate trade details such as Risk:Reward ratio, ROI, expected value (EV) of the system with varying timeframes.
+Provides a CLI-based, systematic way to log trades and review trading performance more quickly than maintaining the same records manually in spreadsheets. The current product focuses on trade journaling, `R`-multiple calculations, summary metrics, strategy comparison, and encrypted local storage.
 
-### 3.3 Scope
+### A.3 Scope
 
-TradeLog helps financial trading professionals systematically log, manage, and analyze their trading data through a fast CLI-based system. It enables users to:
+TradeLog helps financial trading professionals systematically log, manage, and analyze their trading data through a fast CLI-based system. In the current version, it enables users to:
 
-* Log and manage trades efficiently.
-* Calculate key trading metrics (ROI, Risk:Reward, EV, YTD performance).
-* Filter and analyze trades by strategy, ticker, or timeframe.
-* Test and compare trading systems.
-* Monitor risk exposure.
-
----
-
-## 4. User Stories
-
-| Version  | As a ...             | I want to ...                                                      | So that I can ...                                         |
-|:---------|:---------------------|:-------------------------------------------------------------------|:----------------------------------------------------------|
-| **v1.0** | trader               | Log my trading data                                                | I can call on the data to run tests on trading systems    |
-| **v1.0** | trader               | Automatically calculate my Year-To-Date (YTD) ROI                  | Easily track my progress and performance                  |
-| **v1.0** | trader               | delete an incorrectly entered set of data                          | my statistics remain accurate                             |
-| **v1.0** | trader               | edit previously logged trades                                      | I can correct mistakes in my data                         |
-| **v1.0** | forgetful trader     | trades are saved automatically after every command                 | I don't lose recent entries due to distraction or fatigue |
-| **v2.0** | trader               | Filter my trades by a specific ticker symbol                       | Review my performance on a single asset                   |
-| **v2.0** | trader               | Save trading systems                                               | I can easily test them on different datasets              |
-| **v2.0** | trader               | Automatically calculate my risk:reward ratio                       | Quickly decide if I want to confirm a trade               |
-| **v2.0** | trader               | Switch between testing mode and live trading mode                  | I can separate live trades from backtest trades           |
-| **v2.0** | trader               | Automatically calculate Expected Value (EV) of a specific strategy | I know the mathematical advantage of my system            |
-| **v2.0** | trader               | Automatically convert and export my data to CSV                    | Better review my performance and use other tools          |
-| **v2.0** | trader               | Set a Daily Loss Limit that warns me                               | Prevents me from taking unnecessarily large risk          |
-| **v2.0** | trader               | tag trades with a specific strategy name                           | I can group and evaluate them easily                      |
-| **v2.0** | trader               | sort trades by profit or loss                                      | I can quickly identify my biggest wins and losses         |
-| **v2.0** | trader               | Automatically calculate the EV of multiple strategies              | Decide which strategy has the best performance            |
-| **v2.0** | trader               | see my current win or loss streak                                  | I remain aware of potential overconfidence or tilt        |
-| **v2.0** | careless trader      | be warned if I enter a duplicate record                            | I don't accidentally double-count the same fill           |
-| **v2.0** | expert trader        | set short aliases for long tickers                                 | I don't type dots and hyphens hundreds of times           |
-| **v2.0** | trader               | see tickers I've looked up but didn't trade                        | So that I can quickly enter them if I circle back         |
-| **v2.0** | trader               | mark a ticker as "watched but not taken"                           | Remember which setups I passed on during review           |
-| **v2.0** | power user           | use shortcut codes for strategy names (e.g., BB, PB)               | I can log trades faster without typing full names         |
-| **v2.0** | trader               | compare performance across all strategies in one view              | I can identify which strategy has the best edge           |
-| **v2.1** | trader               | tag each trade with my emotional state                             | I can identify psychological patterns                     |
-| **v2.1** | trader               | view a summary over a selected date range                          | I can analyze short-term results                          |
-| **v2.1** | trader               | view my win rate for a specific strategy                           | I can assess its consistency                              |
-| **v2.1** | trader               | calculate average risk per trade                                   | I can monitor my risk management discipline               |
-| **v2.1** | trader               | back up my trading data locally                                    | I do not lose my records                                  |
-| **v2.1** | trader               | load previously saved trading sessions                             | I can continue my analysis seamlessly                     |
-| **v2.1** | trader               | complete a pre-trade checklist before entry                        | I follow my trading plan consistently                     |
-| **v2.1** | trader               | view multiple strategies side-by-side                              | Objectively compare their performance                     |
-| **v2.1** | trader               | automatically calculate maximum drawdown                           | I understand my worst-case risk exposure                  |
-| **v2.1** | trader               | export trades from a specific date range to CSV                    | Share selected periods with my mentor or accountant       |
-| **v2.1** | trader               | automatically calculate the R-multiple                             | I evaluate performance relative to risk                   |
-| **v2.1** | trader               | review a summary and confirm before saving                         | So that I catch typos before they enter my records        |
-| **v2.1** | inexperienced trader | see how many trades I've taken today                               | So that I know if I'm overtrading                         |
-| **v2.1** | trader               | receive an alert if win rate drops below threshold                 | I can review and adjust my strategy promptly              |
-| **v2.1** | trader               | write reflections for each trade                                   | I can improve my decision-making process                  |
-| **v2.1** | trader               | filter and analyze trades by time of day                           | I can identify when I perform best                        |
-| **v2.1** | trader               | Bulk import historical trades                                      | I can test my trading systems on other datasets           |
-| **v2.1** | trader               | attach a chart screenshot to each trade                            | I can visually review my entry and exit decisions         |
-| **v2.1** | trader               | see my total capital currently at risk                             | I avoid overexposure                                      |
+* Log, edit, delete, and review trades efficiently.
+* Calculate key performance metrics such as win rate, average win/loss, expected value (EV), and total `R`.
+* Filter trades by ticker, strategy, and date.
+* Compare strategy performance in one view.
+* Store trade data locally in encrypted password-protected profiles.
 
 ---
 
-## 5. Non-Functional Requirements
+## Appendix B: User Stories
+
+| Version  | As a ...                 | I want to ...                                                  | So that I can ...                                         |
+|:---------|:-------------------------|:---------------------------------------------------------------|:----------------------------------------------------------|
+| **v1.0** | trader                   | log my trading data                                            | review and analyze my trades later                        |
+| **v1.0** | trader                   | edit previously logged trades                                  | correct mistakes in my data                               |
+| **v1.0** | trader                   | delete an incorrectly entered trade                            | keep my records accurate                                  |
+| **v1.0** | trader                   | view a summary of my trades                                    | understand overall performance quickly                    |
+| **v2.0** | trader                   | filter my trades by ticker, strategy, or date                  | review a specific subset of my trades                     |
+| **v2.0** | power user               | use shortcut codes for strategy names (e.g., `BB`, `PB`)       | log trades faster                                         |
+| **v2.0** | trader                   | compare performance across strategies in one view              | identify which strategy performs better                   |
+| **v2.0** | cautious trader          | undo my most recent add, edit, or delete                       | recover quickly from an accidental change                 |
+| **v2.0** | privacy-conscious trader | protect my trade records with password-based encrypted storage | keep sensitive trading data private                       |
+| **v2.1** | trader                   | Save trading systems                                           | I can easily test them on different datasets              |
+| **v2.1** | trader                   | Switch between testing mode and live trading mode              | I can separate live trades from backtest trades           |
+| **v2.1** | trader                   | Automatically convert and export my data to CSV                | Better review my performance and use other tools          |
+| **v2.1** | trader                   | Set a Daily Loss Limit that warns me                           | Prevents me from taking unnecessarily large risk          |
+| **v2.1** | trader                   | sort trades by profit or loss                                  | I can quickly identify my biggest wins and losses         |
+| **v2.1** | trader                   | see my current win or loss streak                              | I remain aware of potential overconfidence or tilt        |
+| **v2.1** | careless trader          | be warned if I enter a duplicate record                        | I don't accidentally double-count the same fill           |
+| **v2.1** | expert trader            | set short aliases for long tickers                             | I don't type dots and hyphens hundreds of times           |
+| **v2.1** | trader                   | see tickers I've looked up but didn't trade                    | So that I can quickly enter them if I circle back         |
+| **v2.1** | trader                   | mark a ticker as "watched but not taken"                       | Remember which setups I passed on during review           |
+| **v2.1** | trader                   | tag each trade with my emotional state                         | I can identify psychological patterns                     |
+| **v2.1** | trader                   | view a summary over a selected date range                      | I can analyze short-term results                          |
+| **v2.1** | trader                   | view my win rate for a specific strategy                       | I can assess its consistency                              |
+| **v2.1** | trader                   | calculate average risk per trade                               | I can monitor my risk management discipline               |
+| **v2.1** | trader                   | complete a pre-trade checklist before entry                    | I follow my trading plan consistently                     |
+| **v2.1** | trader                   | view multiple strategies side-by-side                          | Objectively compare their performance                     |
+| **v2.1** | trader                   | automatically calculate maximum drawdown                       | I understand my worst-case risk exposure                  |
+| **v2.1** | trader                   | export trades from a specific date range to CSV                | Share selected periods with my mentor or accountant       |
+| **v2.1** | trader                   | review a summary and confirm before saving                     | So that I catch typos before they enter my records        |
+| **v2.1** | inexperienced trader     | see how many trades I've taken today                           | So that I know if I'm overtrading                         |
+| **v2.1** | trader                   | receive an alert if win rate drops below threshold             | I can review and adjust my strategy promptly              |
+| **v2.1** | trader                   | write reflections for each trade                               | I can improve my decision-making process                  |
+| **v2.1** | trader                   | filter and analyze trades by time of day                       | I can identify when I perform best                        |
+| **v2.1** | trader                   | Bulk import historical trades                                  | I can test my trading systems on other datasets           |
+| **v2.1** | trader                   | attach a chart screenshot to each trade                        | I can visually review my entry and exit decisions         |
+| **v2.1** | trader                   | see my total capital currently at risk                         | I avoid overexposure                                      |
+
+---
+
+## Appendix C: Non-Functional Requirements
 
 1. **Platform Independence**: Must run on any OS with Java 17 or higher installed.
-2. **Performance**: Statistics calculation (EV, ROI) should take <100ms for up to 2,000 trades.
-3. **Data Persistence**: Immediate auto-save to `tradelog.txt` after every valid state-changing command.
+2. **Performance**: Summary and comparison calculations should complete within 100 ms for up to 2,000 trades on a typical modern desktop.
+3. **Data Persistence**: Trade data should be stored locally in encrypted profile files and saved successfully when the application exits normally.
 4. **Offline Capability**: All trade data must be stored locally without requiring cloud connectivity.
 
 ---
 
-## 6. Glossary
+## Appendix D: Glossary
 
 * **Ticker**: Unique symbol representing a traded asset (e.g., AAPL).
 * **R:R (Risk:Reward)**: The ratio of potential profit to potential loss.
 * **EV (Expected Value)**: The average amount a trader can expect to win or lose per trade.
-* **ROI (Return on Investment)**: Percentage return relative to capital.
 * **R-multiple**: A trade's profit or loss expressed as a multiple of the initial risk (e.g., a 2R win means the trade made twice the amount risked).
 * **Strategy shortcut**: A predefined abbreviation (e.g., `BB`) that the system automatically expands to a full strategy name (e.g., `Breakout`) at parse time.
 
 ---
 
-## 7. Instructions for Manual Testing
+## Appendix E: Instructions for Manual Testing
 
-### 7.1 Initial Launch
+### E.1 Initial Launch
 
-1. Ensure the `data/` folder is empty.
+1. Ensure the `data/` folder does not contain any existing profile files.
 2. Run `java -jar TradeLog.jar`.
-3. Verify that the application creates a fresh `tradelog.txt` file.
+3. When prompted with `No profiles found. Create a new password:`, enter a new password.
+4. Verify that the application starts successfully and displays the welcome banner, command list, and supported strategy shortcuts.
+5. Exit the application and verify that a new encrypted profile file is created in `data/`.
 
-### 7.2 Testing CRUD (v1.0)
+### E.2 Testing CRUD (v1.0)
 
-1. **Add**: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/Trend`
-2. **Edit**: `edit 1 x/230`
-3. **Delete**: `delete 1`
-4. **List**: `list` (Verify it reflects changes immediately in the console).
-5. **Summary**: `summary`
-6. **Exit**: `exit`
+1. Run: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/Trend`
+2. Verify that the trade summary is printed and `Trade successfully added.` is shown.
+3. Run: `list`
+4. Verify that the trade appears as item `1`.
+5. Run: `edit 1 x/230`
+6. Verify that the application shows `Trade 1 updated successfully.` and prints the updated trade summary.
+7. Run: `summary`
+8. Verify that the overall performance block is shown for the current trade list.
+9. Run: `delete 1`
+10. Verify that the deleted trade is printed followed by `Trade successfully deleted.`
+11. Run: `list`
+12. Verify that the list is now empty.
 
-### 7.3 Testing Strategy Shortcuts (v2.0)
+### E.3 Testing v2.0 Features
 
 1. Run: `add t/AAPL d/2026-03-18 dir/long e/150 x/165 s/140 o/win strat/BB`
-2. Run: `list`
-3. Verify the stored strategy name is `Breakout`, not `BB`.
-4. Run with an unrecognised shortcut: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/CustomStrat`
-5. Verify the strategy is stored as `CustomStrat` unchanged.
+2. Verify that the trade summary is printed and the strategy is shown as `Breakout`, not `BB`.
+3. Run: `add t/TSLA d/2026-03-19 dir/short e/200 x/190 s/210 o/loss strat/PB`
+4. Verify that the second trade is added successfully and the strategy is shown as `Pullback`.
+5. Run: `filter strat/Breakout`
+6. Verify that only the `Breakout` trade is shown and that a filtered summary is printed below it.
+7. Run: `filter -p strat/break`
+8. Verify that the same `Breakout` trade is matched using partial matching.
+9. Run: `compare`
+10. Verify that `Breakout` and `Pullback` appear as separate strategy blocks with their own trade counts and metrics.
+11. Run: `undo`
+12. Verify that the most recent change is undone.
+13. Run: `list`
+14. Verify that the second trade is no longer present.
+15. Run: `undo` again.
+16. Verify that the application reports there is no action to undo.
 
-### 7.4 Testing Strategy Comparison (v2.0)
 
-1. Add at least two trades with different strategy names (or shortcuts).
-2. Run: `compare`
-3. Verify that each strategy appears as a separate block with correct trade count, win rate, and EV figures.
-4. Run `compare` on an empty trade list and verify the empty-list message is shown.
 

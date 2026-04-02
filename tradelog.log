@@ -1,24 +1,240 @@
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showWelcome
+Apr 02, 2026 10:10:24 AM tradelog.ui.Ui showStrategyShortcuts
+INFO: Displaying 10 strategy shortcuts.
+Apr 02, 2026 10:10:24 AM tradelog.ui.Ui showWelcome
 INFO: Welcome message displayed.
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui printTrade
-INFO: Printing trade: AAPL
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showTradeAdded
-INFO: Trade added confirmation displayed.
-Mar 18, 2026 7:41:55 PM tradelog.logic.command.ListCommand execute
-INFO: Executing list command. Trade count: 1
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui printTradeList
-INFO: Printing trade list. Trade count: 1
-Mar 18, 2026 7:41:55 PM tradelog.logic.command.ListCommand execute
-INFO: List command executed successfully.
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showTradeUpdated
-INFO: Trade 1 updated confirmation displayed.
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui printTrade
-INFO: Printing trade: AAPL
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showSummary
-INFO: Displaying summary for 1 trades.
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui printTrade
-INFO: Printing trade: AAPL
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showTradeDeleted
-INFO: Trade deleted confirmation displayed.
-Mar 18, 2026 7:41:55 PM tradelog.ui.Ui showGoodbye
-INFO: Goodbye message displayed.
+Apr 02, 2026 10:10:50 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.
+Apr 02, 2026 10:10:51 AM tradelog.ui.Ui showError
+WARNING: Error displayed to user: Command cannot be empty.

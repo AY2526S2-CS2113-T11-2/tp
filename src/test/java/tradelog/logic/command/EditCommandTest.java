@@ -16,6 +16,16 @@ import tradelog.ui.Ui;
  * Test suite for EditCommand validation and atomic updates.
  */
 public class EditCommandTest {
+    // Constants to satisfy IDE static analysis and ensure consistent testing
+    private static final String INIT_TICKER = "AAPL";
+    private static final String INIT_DATE = "2023-10-10";
+    private static final String INIT_DIR = "long";
+    private static final double INIT_ENTRY = 150.0;
+    private static final double INIT_EXIT = 160.0;
+    private static final double INIT_STOP = 140.0;
+    private static final String INIT_OUTCOME = "Open";
+    private static final String INIT_STRAT = "Trend";
+
     private TradeList tradeList;
     private Storage storage;
     private Ui ui;
@@ -23,66 +33,92 @@ public class EditCommandTest {
     @BeforeEach
     public void setUp() {
         tradeList = new TradeList();
-        // Fixed: Use 8 arguments for Trade constructor to avoid "Expected 8 found 6"
-        // Order: Ticker, Date, Direction, Entry, Exit, Stop, Outcome, Strategy
-        Trade initialTrade = new Trade("AAPL", "2023-10-10", "long",
-                150.0, 160.0, 140.0, "Open", "Trend");
+        Trade initialTrade = new Trade(INIT_TICKER, INIT_DATE, INIT_DIR,
+                INIT_ENTRY, INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
         tradeList.addTrade(initialTrade);
 
         ui = new Ui();
         storage = new Storage("test_edit_storage.txt");
     }
 
+    /**
+     * Performs a deep state comparison to verify Atomicity.
+     * Arguments are wrapped to comply with 120-character line length limit.
+     */
+    private void assertTradeUnchanged(int index, String ticker, String date, String dir,
+                                      double entry, double exit, double stop,
+                                      String outcome, String strat) {
+        Trade current = tradeList.getTrade(index);
+        assertEquals(ticker, current.getTicker(), "Atomicity Failure: Ticker modified");
+        assertEquals(date, current.getDate(), "Atomicity Failure: Date modified");
+        assertEquals(dir.toLowerCase(), current.getDirection().toLowerCase(), "Atomicity Failure: Direction modified");
+        assertEquals(entry, current.getEntryPrice(), "Atomicity Failure: Entry price modified");
+        assertEquals(exit, current.getExitPrice(), "Atomicity Failure: Exit price modified");
+        assertEquals(stop, current.getStopLossPrice(), "Atomicity Failure: Stop loss modified");
+        assertEquals(outcome, current.getOutcome(), "Atomicity Failure: Outcome modified");
+        assertEquals(strat, current.getStrategy(), "Atomicity Failure: Strategy modified");
+    }
+
     @Test
     public void execute_validEdit_tradeUpdatedSuccessfully() throws TradeLogException {
-        // User wants to update the exit price to 175.0 and the outcome to WIN
         EditCommand command = new EditCommand("1 x/175.0 o/WIN");
-
         command.execute(tradeList, ui, storage);
 
         Trade updatedTrade = tradeList.getTrade(0);
+        assertEquals(175.0, updatedTrade.getExitPrice());
+        assertEquals("WIN", updatedTrade.getOutcome());
+    }
 
-        // Verify that the specified fields were updated
-        assertEquals(175.0, updatedTrade.getExitPrice(), "Exit price should be updated to 175.0");
-        assertEquals("WIN", updatedTrade.getOutcome(), "Outcome should be updated to WIN");
+    @Test
+    public void execute_editSecondTrade_success() throws TradeLogException {
+        String newTicker = "MSFT";
+        Trade secondTrade = new Trade("TSLA", "2024-01-01", "short", 250.0, 230.0, 260.0, "WIN", "Swing");
+        tradeList.addTrade(secondTrade);
 
-        // Verify that the OTHER fields remained exactly the same
-        assertEquals("AAPL", updatedTrade.getTicker(), "Ticker should remain unchanged");
-        assertEquals("2023-10-10", updatedTrade.getDate(), "Date should remain unchanged");
-        assertEquals(150.0, updatedTrade.getEntryPrice(), "Entry price should remain unchanged");
+        EditCommand command = new EditCommand("2 t/" + newTicker);
+        command.execute(tradeList, ui, storage);
+
+        // Line wrapped to satisfy Checkstyle 120-char limit
+        assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
+                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+
+        assertTradeUnchanged(1, newTicker, "2024-01-01", "short", 250.0,
+                230.0, 260.0, "WIN", "Swing");
     }
 
     @Test
     public void execute_invalidDirectionString_throwsTradeLogException() {
         EditCommand command = new EditCommand("1 dir/invalid_direction");
-
-        // Verify that the method throws TradeLogException and STOPS before calling any UI methods
         assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
-
-        // Verify Atomicity: Data remains unchanged
-        assertEquals("long", tradeList.getTrade(0).getDirection());
+        assertEquals(INIT_DIR.toLowerCase(), tradeList.getTrade(0).getDirection().toLowerCase());
     }
 
     @Test
     public void execute_invalidLongRisk_throwsTradeLogException() {
-        // Stop loss (160) above entry (150) for long is invalid
         EditCommand command = new EditCommand("1 s/160.0");
-
         assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
-
-        // Verify Atomicity: Stop loss price remains 140.0
-        assertEquals(140.0, tradeList.getTrade(0).getStopLossPrice());
+        assertEquals(INIT_STOP, tradeList.getTrade(0).getStopLossPrice());
     }
 
     @Test
     public void execute_atomicUpdateFailure_tickerNotChanged() {
-        // Attempting to change ticker to TSLA but failing at the stop loss validation step
         EditCommand command = new EditCommand("1 t/TSLA s/160.0");
+        assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
+
+        // Line wrapped to satisfy Checkstyle 120-char limit
+        assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
+                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+    }
+
+    @Test
+    public void execute_complexInvalidEdit_fullStateMaintained() {
+        EditCommand command = new EditCommand("1 t/MSFT d/2025-01-01 e/not_a_number");
 
         assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
 
-        // Verify Atomicity: Ticker must still be AAPL
-        assertEquals("AAPL", tradeList.getTrade(0).getTicker());
+        // Line wrapped to satisfy Checkstyle 120-char limit
+        assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
+                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
     }
 
     @Test

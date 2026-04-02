@@ -16,9 +16,22 @@ public class Ui {
 
     private static final String DIVIDER = "-".repeat(80);
     private static final String COMMAND_LIST =
-            "Commands: add, list, edit, delete, filter, compare, summary, exit";
+            "Commands: add, list, edit, delete, filter, compare, summary, undo, exit";
     private static final String STRATEGY_SHORTCUTS_HEADER = "Strategy shortcuts:";
     private static final Logger logger = Logger.getLogger(Ui.class.getName());
+    private final java.util.Scanner scanner = new java.util.Scanner(System.in);
+
+    /**
+    * Reads a command from the user.
+    *
+    * @return The command entered by the user.
+    */
+    public String readCommand() {
+        if (scanner.hasNextLine()) {
+            return scanner.nextLine().trim();
+        }
+        return "";
+    }
 
     /** Prints the welcome banner shown on startup. */
     public void showWelcome() {
@@ -83,6 +96,26 @@ public class Ui {
             for (int i = 0; i < tradeList.size(); i++) {
                 System.out.println((i + 1) + ". " + tradeList.getTrade(i));
             }
+        }
+        showLine();
+    }
+
+    /**
+     * Prints the trades at the specified original indices, preserving their
+     * numbering from the full trade list.
+     *
+     * @param tradeList The full list of trades.
+     * @param indices The zero-based indices of trades to print.
+     */
+    public void printIndexedTrades(TradeList tradeList, java.util.List<Integer> indices) {
+        assert tradeList != null : "TradeList should not be null";
+        assert indices != null : "Indices should not be null";
+
+        logger.log(Level.INFO, "Printing {0} filtered trade(s).", indices.size());
+
+        showLine();
+        for (int index : indices) {
+            System.out.println((index + 1) + ". " + tradeList.getTrade(index));
         }
         showLine();
     }
@@ -194,6 +227,46 @@ public class Ui {
         showLine();
     }
 
+    /** Prints a message confirming the most recent action was undone. */
+    public void showUndoSuccess() {
+        System.out.println("Most recent change has been undone.");
+        logger.log(Level.INFO, "Undo success message displayed.");
+    }
+
+    /** Prints a message when there is no previous action to undo. */
+    public void showUndoUnavailable() {
+        System.out.println("There is no action to undo.");
+        logger.log(Level.INFO, "Undo unavailable message displayed.");
+    }
+
+    /**
+     * Reads a password from the user.
+     *
+     * @param prompt The prompt to display.
+     * @return The password entered by the user.
+     */
+    public String readPassword(String prompt) {
+        System.out.print(prompt);
+        if (scanner.hasNextLine()) {
+            return scanner.nextLine();
+        }
+        return "";
+    }
+
+    /**
+     * Prints a prompt and reads a plain line of text from the user.
+     *
+     * @param prompt The prompt to display.
+     * @return The trimmed line entered by the user.
+     */
+    public String readLine(String prompt) {
+        System.out.print(prompt);
+        if (scanner.hasNextLine()) {
+            return scanner.nextLine().trim();
+        }
+        return "";
+    }
+
     /**
      * Prints an error message to the user.
      *
@@ -207,5 +280,10 @@ public class Ui {
         showLine();
         System.out.println("Error: " + message);
         showLine();
+    }
+
+    public void closeScanner() {
+        scanner.close();
+        logger.log(Level.INFO, "Scanner closed.");
     }
 }

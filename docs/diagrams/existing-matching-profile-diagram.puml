@@ -1,0 +1,50 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant ProfileManager
+participant Storage
+participant Ui
+
+TradeLog -> ProfileManager ** : new ProfileManager(dir, name, password, ui)
+activate ProfileManager
+
+note over ProfileManager : Check if files exist\n
+
+ProfileManager -> Ui : readPassword("Enter password...")
+activate Ui
+Ui --> ProfileManager : password
+deactivate Ui
+
+group tryLoadExistingProfile
+    create Storage
+    ProfileManager -> Storage : new Storage("trades.txt")
+    
+    ProfileManager -> Storage : setPassword(password)
+    activate Storage
+    Storage --> ProfileManager
+    deactivate Storage
+    
+    ProfileManager -> Storage : loadTrades()
+    activate Storage
+    note right of Storage : hash match check\n
+    Storage --> ProfileManager : TradeList
+    deactivate Storage
+end
+
+ProfileManager -> Ui : showMessage("Successfully retrieved profile!")
+
+ProfileManager --> TradeLog
+deactivate ProfileManager
+
+TradeLog -> ProfileManager : getActiveStorage()
+activate ProfileManager
+ProfileManager --> TradeLog : activeStorage
+deactivate ProfileManager
+
+TradeLog -> ProfileManager : getLoadedTrades()
+activate ProfileManager
+ProfileManager --> TradeLog : loadedTrades
+deactivate ProfileManager
+
+@enduml

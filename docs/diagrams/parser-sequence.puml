@@ -1,0 +1,49 @@
+@startuml
+hide footbox
+skinparam maxMessageSize 100
+
+participant "LogicManager" as LogicManager
+participant "Parser" as Parser
+participant "a:AddCommand" as AddCommand
+participant "<<class>>\nArgumentTokeniser" as ArgumentTokeniser
+participant "<<class>>\nParserUtil" as ParserUtil
+
+-> LogicManager : parse("add t/AAPL p/150.0...")
+activate LogicManager
+
+LogicManager -> Parser : parseCommand("add t/AAPL p/150.0...")
+activate Parser
+
+create AddCommand
+Parser -> AddCommand : new AddCommand("t/AAPL p/150.0...")
+activate AddCommand
+
+AddCommand -> ArgumentTokeniser : tokenise(args, prefixes)
+activate ArgumentTokeniser
+ArgumentTokeniser --> AddCommand : argumentMap
+deactivate ArgumentTokeniser
+
+AddCommand -> ParserUtil : parseTicker("AAPL")
+activate ParserUtil
+ParserUtil --> AddCommand : "AAPL"
+deactivate ParserUtil
+
+AddCommand -> ParserUtil : parsePrice("150.0", "Entry")
+activate ParserUtil
+ParserUtil --> AddCommand : 150.0
+deactivate ParserUtil
+
+AddCommand -> ParserUtil : validateStopLoss("Long", 150.0, 140.0)
+activate ParserUtil
+ParserUtil --> AddCommand
+deactivate ParserUtil
+
+AddCommand --> Parser : a
+deactivate AddCommand
+
+Parser --> LogicManager : a
+deactivate Parser
+
+<-- LogicManager : a
+deactivate LogicManager
+@enduml

@@ -10,6 +10,7 @@ import tradelog.logic.command.ExitCommand;
 import tradelog.logic.command.ListCommand;
 import tradelog.logic.command.SummaryCommand;
 import tradelog.logic.command.FilterCommand;
+import tradelog.logic.command.UndoCommand;
 
 /**
  * Parses raw user input and translates it into executable Command objects.
@@ -36,6 +37,7 @@ public class Parser {
         case "filter" -> new FilterCommand(arguments);
         case "compare" -> new CompareCommand();
         case "summary" -> new SummaryCommand();
+        case "undo" -> new UndoCommand();
         case "exit" -> new ExitCommand();
         default -> throw new TradeLogException(
                 "Unknown command: '" + commandWord + "'. Please try again.");

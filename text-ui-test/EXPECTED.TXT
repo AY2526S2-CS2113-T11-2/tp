@@ -1,6 +1,9 @@
+
+ No profiles found. Create a new password: 
+ No existing profile found. Creating new profile...
 --------------------------------------------------------------------------------
 Welcome to TradeLog!
-Commands: add, list, edit, delete, filter, compare, summary, exit
+Commands: add, list, edit, delete, filter, compare, summary, undo, exit
 Strategy shortcuts:
 BB = Breakout
 TBF = Trend Bar Failure
