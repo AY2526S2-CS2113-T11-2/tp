@@ -1,0 +1,46 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant SummaryCommand
+participant TradeList
+participant Trade
+participant Ui
+
+TradeLog -> SummaryCommand : execute(tradeList, ui, storage)
+activate SummaryCommand
+
+SummaryCommand -> TradeList : isEmpty()
+activate TradeList
+TradeList --> SummaryCommand : boolean
+deactivate TradeList
+
+alt tradeList is empty
+    SummaryCommand -> Ui : showSummaryEmpty()
+    activate Ui
+    Ui --> SummaryCommand
+    deactivate Ui
+
+else tradeList is not empty
+    loop for each trade in list
+        SummaryCommand -> TradeList : getTrade(i)
+        activate TradeList
+        TradeList --> SummaryCommand : trade
+        deactivate TradeList
+
+        SummaryCommand -> Trade : getRiskRewardRatio()
+        activate Trade
+        Trade --> SummaryCommand : double
+        deactivate Trade
+    end
+
+    SummaryCommand -> Ui : showSummary(totalTrades, winRate, ...)
+    activate Ui
+    Ui --> SummaryCommand
+    deactivate Ui
+end
+
+SummaryCommand --> TradeLog
+deactivate SummaryCommand
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant Parser
+participant DeleteCommand
+participant TradeList
+participant Ui
+
+TradeLog -> Parser : parseCommand("delete 2")
+activate Parser
+
+create DeleteCommand
+Parser -> DeleteCommand : new DeleteCommand("2")
+activate DeleteCommand
+DeleteCommand --> Parser : deleteCommand
+deactivate DeleteCommand
+
+Parser --> TradeLog : deleteCommand
+deactivate Parser
+
+TradeLog -> DeleteCommand : execute(tradeList, ui, storage)
+activate DeleteCommand
+
+alt valid index
+    DeleteCommand -> TradeList : deleteTrade(index)
+    activate TradeList
+    TradeList --> DeleteCommand : deletedTrade
+    deactivate TradeList
+
+    DeleteCommand -> Ui : printTrade(deletedTrade)
+    activate Ui
+    Ui --> DeleteCommand
+    deactivate Ui
+
+    DeleteCommand -> Ui : showTradeDeleted()
+    activate Ui
+    Ui --> DeleteCommand
+    deactivate Ui
+
+else index out of bounds
+    DeleteCommand -> Ui : showError("Trade index does not exist!")
+    activate Ui
+    Ui --> DeleteCommand
+    deactivate Ui
+end
+
+DeleteCommand --> TradeLog
+deactivate DeleteCommand
+
+@enduml
