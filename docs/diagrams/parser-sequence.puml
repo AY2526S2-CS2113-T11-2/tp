@@ -1,17 +1,16 @@
 @startuml
 hide footbox
-skinparam maxMessageSize 100
 
-participant "LogicManager" as LogicManager
-participant "Parser" as Parser
-participant "a:AddCommand" as AddCommand
-participant "<<class>>\nArgumentTokeniser" as ArgumentTokeniser
-participant "<<class>>\nParserUtil" as ParserUtil
+participant LogicManager
+participant Parser
+participant AddCommand
+participant ArgumentTokeniser
+participant ParserUtil
 
 -> LogicManager : parse("add t/AAPL p/150.0...")
 activate LogicManager
 
-LogicManager -> Parser : parseCommand("add t/AAPL p/150.0...")
+LogicManager -> Parser : parseCommand()
 activate Parser
 
 create AddCommand
