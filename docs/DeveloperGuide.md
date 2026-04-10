@@ -222,26 +222,8 @@ To adhere to the principle of Separation of Concerns, the execution of the `add`
 
 ##### Sequence Diagram — Full `add` execution path
 
-```
-User        TradeLog         Parser        AddCommand         Trade        TradeList        Ui
-│             │               │               │                │              │            │
-│─"add t/.."─►│               │               │                │              │            │
-│             │─parseCommand─►│               │                │              │            │
-│             │               │─new AddCmd()─►│                │              │            │
-│             │               │               │──new Trade()──►│              │            │
-│             │               │               │◄──Trade────────│              │            │
-│             │               │◄──AddCommand──│                │              │            │
-│             │◄──AddCommand──│               │                │              │            │
-│             │               │               │                │              │            │
-│             │────────────execute(tradeList, ui, storage)────►│              │            │
-│             │               │               │                │──addTrade(t)►│            │
-│             │               │               │                │◄─────────────│            │
-│             │               │               │                │──printTrade─►│            │
-│             │               │               │                │◄─────────────│            │
-│             │               │               │                │──showAdded()►│            │
-│             │               │               │                │◄─────────────│            │
-│             │◄──────────────────────────────│                │              │            │
-```
+![AddCommand sequence diagram](diagrams/add-command-sequence.png)
+
 ##### Design Rationale
 
 The alternative considered having the constructor simply store the raw user string, pushing all tokenizing and validation inside `execute()`. This was rejected because it violates the Single Responsibility Principle. It would bloat the `execute()` method with string manipulation, financial logic validation, memory updates, and UI updates all at once, making unit testing significantly more difficult.
@@ -261,25 +243,7 @@ To adhere to the principle of Separation of Concerns, the execution of the `dele
 1. Construction & Validation Phase: When the user inputs a `delete` command, the `Parser` creates a new `DeleteCommand(String arguments)`. The constructor immediately trims the raw argument string and validates that it is neither missing nor blank. It then attempts to parse the argument into an integer index. If the input is not a valid integer, or if the parsed value is less than or equal to zero, a `TradeLogException` is thrown before the `TradeList` or `Ui` is ever accessed. 
 2. Execution Phase: Once the `DeleteCommand` is successfully instantiated with a valid positive index stored in its internal state, the main loop calls `execute(tradeList, ui, storage)`. The command converts the user-facing 1-based index into the system’s internal 0-based index and attempts to remove the corresponding `Trade` from the `TradeList`. If the deletion succeeds, the deleted trade is printed and a confirmation message is shown through the `Ui`. If the index is out of bounds, the command catches the resulting `IndexOutOfBoundsException` and displays an error message instead. As with other state-changing commands, persistence is handled by the main loop architecture after successful execution.
 
-```
-User        TradeLog         Parser       DeleteCommand       TradeList        Trade         Ui
-│             │               │               │                 │              │            │
-│─"delete 2"─►│               │               │                 │              │            │
-│             │─parseCommand─►│               │                 │              │            │
-│             │               │─new DeleteCmd(arguments)───────►│              │            │
-│             │               │               │                 │              │            │
-│             │               │◄──────DeleteCommand─────────────│              │            │
-│             │◄──────────────│               │                 │              │            │
-│             │               │               │                 │              │            │
-│             │────────────execute(tradeList, ui, storage)─────►│              │            │
-│             │               │               │──deleteTrade()─►│              │            │
-│             │               │               │◄──deletedTrade──│              │            │
-│             │               │               │──printTrade(deletedTrade)─────►│            │
-│             │               │               │◄───────────────────────────────│            │
-│             │               │               │──showTradeDeleted()───────────►│            │
-│             │               │               │◄───────────────────────────────│            │
-│             │◄──────────────────────────────│                 │              │            │
-```
+![DeleteCommand sequence diagram](diagrams/delete-command-sequence.png)
 
 ##### Design Rationale
 
@@ -303,27 +267,7 @@ After the loop completes, it calculates the win rate, average win, average loss,
 
 ##### Sequence Diagram — `summary` execution and calculation
 
-```
-TradeLog        SummaryCommand        TradeList             Ui
-│                  │                   │                 │
-│────execute()────►│                   │                 │
-│                  │──isEmpty()───────►│                 │
-│                  │◄──boolean─────────│                 │
-│                  │                   │                 │
-│                  │ [if not empty]    │                 │
-│                  │──size()──────────►│                 │
-│                  │◄──int─────────────│                 │
-│                  │                   │                 │
-│                  │ loop [for every trade in list]      │
-│                  │──getTrade(i)─────►│                 │
-│                  │◄──Trade───────────│                 │
-│                  │──getRiskReward()─►│                 │
-│                  │◄──double──────────│                 │
-│                  │                   │                 │
-│                  │──showSummary(metrics)──────────────►│
-│                  │◄────────────────────────────────────│
-│◄─────────────────│                   │                 │
-```
+![SummaryCommand sequence diagram](diagrams/summary-command-sequence.png)
 
 ##### Design Rationale
 

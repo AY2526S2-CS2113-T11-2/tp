@@ -1,0 +1,48 @@
+@startuml
+hide footbox
+
+participant TradeLog
+participant Parser
+participant AddCommand
+participant Trade
+participant TradeList
+participant Ui
+
+TradeLog -> Parser : parseCommand("add t/AAPL...")
+activate Parser
+
+create AddCommand
+Parser -> AddCommand : new AddCommand("t/AAPL...")
+activate AddCommand
+
+create Trade
+AddCommand -> Trade : new Trade(ticker, date, dir, ...)
+
+AddCommand --> Parser : addCommand
+deactivate AddCommand
+
+Parser --> TradeLog : addCommand
+deactivate Parser
+
+TradeLog -> AddCommand : execute(tradeList, ui, storage)
+activate AddCommand
+
+AddCommand -> TradeList : addTrade(trade)
+activate TradeList
+TradeList --> AddCommand
+deactivate TradeList
+
+AddCommand -> Ui : printTrade(trade)
+activate Ui
+Ui --> AddCommand
+deactivate Ui
+
+AddCommand -> Ui : showTradeAdded()
+activate Ui
+Ui --> AddCommand
+deactivate Ui
+
+AddCommand --> TradeLog
+deactivate AddCommand
+
+@enduml
