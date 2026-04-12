@@ -33,7 +33,8 @@ public class FilterCommand extends Command {
         HashMap<String, String> parsedArgs = ArgumentTokeniser.tokenise(arguments, PREFIXES);
 
         ticker = ParserUtil.parseTicker(parsedArgs.getOrDefault("t/", ""));
-        strategy = ParserUtil.parseStrategy(parsedArgs.getOrDefault("strat/", ""));
+        String rawStrategy = parsedArgs.getOrDefault("strat/", "").trim();
+        strategy = rawStrategy.isEmpty() ? "" : ParserUtil.parseStrategy(rawStrategy);
         date = parsedArgs.getOrDefault("d/", "").trim();
         isPartial = Arrays.asList(arguments.split(" ")).contains("-p");
 

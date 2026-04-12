@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import tradelog.logic.parser.ParserUtil;
 import tradelog.model.Trade;
 import tradelog.model.TradeList;
 import tradelog.storage.Storage;
@@ -41,7 +42,7 @@ public class CompareCommand extends Command {
             Trade trade = tradeList.getTrade(i);
             assert trade != null : "Trade at index " + i + " should not be null";
 
-            String strategy = trade.getStrategy();
+            String strategy = ParserUtil.canonicalizeStoredStrategy(trade.getStrategy());
             StrategyStats strategyStats = strategyComparison.computeIfAbsent(
                     strategy, unused -> new StrategyStats());
             strategyStats.addTrade(trade.getRiskRewardRatio());

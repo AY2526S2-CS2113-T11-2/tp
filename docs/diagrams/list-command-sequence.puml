@@ -3,34 +3,32 @@ hide footbox
 skinparam Style strictuml
 skinparam SequenceMessageAlign center
 
-participant "user" as User
 participant ":TradeLog" as TradeLog
-participant ":Parser" as Parser
+participant "<<class>>\nParser" as Parser
 participant "lc:ListCommand" as ListCommand
 participant ":Ui" as Ui
 participant "tl:TradeList" as TradeList
 
-User -> TradeLog : input list
 activate TradeLog
 
 TradeLog -> Parser : parseCommand("list")
 activate Parser
+create ListCommand
 Parser -> ListCommand : new ListCommand()
 activate ListCommand
+ListCommand --> Parser : lc
+deactivate ListCommand
 Parser --> TradeLog : lc
 deactivate Parser
 
 TradeLog -> ListCommand : execute(...)
+activate ListCommand
 ListCommand -> Ui : printTradeList(tradeList)
 activate Ui
-note over Ui
-    formats and prints the
-    full trade list
-end note
+ref over Ui, TradeList : Print trade list
 Ui --> ListCommand
 deactivate Ui
 ListCommand --> TradeLog
 deactivate ListCommand
-TradeLog --> User
 deactivate TradeLog
 @enduml

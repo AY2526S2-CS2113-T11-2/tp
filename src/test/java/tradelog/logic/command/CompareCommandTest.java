@@ -81,4 +81,23 @@ public class CompareCommandTest {
         assertEquals(0.0, pullbackStats.getAverageLoss(), 0.001);
         assertEquals(1.5, pullbackStats.getExpectedValue(), 0.001);
     }
+
+    @Test
+    public void execute_caseVariantKnownStrategy_groupsTradesUnderCanonicalName() {
+        tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long",
+                100, 120, 90, "Win", "Breakout"));
+        tradeList.addTrade(new Trade("TSLA", "2026-03-02", "Long",
+                100, 95, 90, "Loss", "breakout"));
+        tradeList.addTrade(new Trade("MSFT", "2026-03-03", "Long",
+                100, 115, 90, "Win", "BB"));
+
+        CompareCommand command = new CompareCommand();
+        command.execute(tradeList, mockUi, dummyStorage);
+
+        assertEquals(1, mockUi.capturedComparison.size());
+
+        StrategyStats breakoutStats = mockUi.capturedComparison.get("Breakout");
+        assertEquals(3, breakoutStats.getTradeCount());
+        assertEquals(66.667, breakoutStats.getWinRate(), 0.001);
+    }
 }

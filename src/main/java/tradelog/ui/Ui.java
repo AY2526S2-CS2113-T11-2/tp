@@ -30,7 +30,7 @@ public class Ui {
         if (scanner.hasNextLine()) {
             return scanner.nextLine().trim();
         }
-        return "";
+        return null;
     }
 
     /** Prints the welcome banner shown on startup. */

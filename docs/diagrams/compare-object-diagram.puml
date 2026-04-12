@@ -1,0 +1,57 @@
+@startuml
+skinparam Style strictuml
+skinparam classAttributeIconSize 0
+hide circles
+
+title CompareCommand Object Diagram
+
+object "cc:CompareCommand" as CompareCommand
+
+object "ui:Ui" as Ui
+
+object "tl:TradeList" as TradeList {
+    size = 3
+}
+
+object "t1:Trade" as Trade1 {
+    strategy = "Breakout"
+    riskRewardRatio = 2.0
+}
+
+object "t2:Trade" as Trade2 {
+    strategy = "breakout"
+    riskRewardRatio = -0.5
+}
+
+object "t3:Trade" as Trade3 {
+    strategy = "Pullback"
+    riskRewardRatio = 1.5
+}
+
+object "breakoutStats:StrategyStats" as BreakoutStats {
+    tradeCount = 2
+    expectedValue = 0.75
+}
+
+object "pullbackStats:StrategyStats" as PullbackStats {
+    tradeCount = 1
+    expectedValue = 1.5
+}
+
+CompareCommand -- TradeList
+CompareCommand -- Ui
+CompareCommand -- BreakoutStats
+CompareCommand -- PullbackStats
+TradeList -- Trade1
+TradeList -- Trade2
+TradeList -- Trade3
+Ui -- BreakoutStats
+Ui -- PullbackStats
+
+note bottom of CompareCommand
+  Known strategy variants are
+  grouped under canonical names
+  during comparison.
+end note
+
+@enduml

@@ -20,7 +20,7 @@ java -jar TradeLog.jar
 - View overall performance summaries
 - Compare performance across strategies
 - Undo the most recent add, edit, or delete
-- Use strategy shortcuts such as `BB`, `PB`, and `MTR`
+- Use supported strategy shortcuts such as `BB`, `PB`, and `MTR`, with canonical strategy normalization
 - Store data in encrypted files under the `data/` directory
 
 ## Build and Test

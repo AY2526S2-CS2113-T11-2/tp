@@ -56,6 +56,8 @@ The class keeps a shared `Scanner` as an instance field so the same input stream
 
 Logging is embedded at the `INFO` level for normal interactions and `WARNING` level for errors using `java.util.logging.Logger`. This allows UI activity to be traced without changing the user-visible console format.
 
+`readCommand()` returns `null` when the input stream is no longer available, allowing the main loop to terminate cleanly instead of repeatedly treating end-of-input as an empty command.
+
 ##### Sequence Diagram - `Ui.printTradeList(...)`
 
 ![Ui printTradeList sequence](diagrams/ui-print-trade-list-sequence.png)
@@ -324,15 +326,16 @@ After displaying the matched trades, `FilterCommand` delegates to `SummaryComman
 The constructor parses the argument string in two steps:
 
 1. `ArgumentTokeniser.tokenise` extracts the values for `t/`, `strat/`, and `d/`. Missing prefixes default to empty strings.
-2. The `-p` flag is detected by checking whether the raw argument array contains the literal string `"-p"`.
-3. If all three criteria are empty after parsing, a `TradeLogException` is thrown: at least one filter must be provided.
+2. If `strat/` is provided, it is validated through `ParserUtil.parseStrategy(...)`, which accepts only supported strategy shortcuts and supported canonical strategy names.
+3. The `-p` flag is detected by checking whether the raw argument array contains the literal string `"-p"`.
+4. If all three criteria are empty after parsing, a `TradeLogException` is thrown: at least one filter must be provided.
 
 The `execute` method:
 
 1. Iterates through all trades in `tradeList`.
 2. For each trade, evaluates three boolean conditions (`matchesTicker`, `matchesStrategy`, `matchesDate`). An empty criterion always evaluates to `true` (i.e., it is not applied).
 3. **Exact mode** (default): uses `equals` for ticker and date, `equalsIgnoreCase` for strategy.
-4. **Partial mode** (`-p`): uses `contains` for ticker and date, `toLowerCase().contains(toLowerCase())` for strategy.
+4. **Partial mode** (`-p`): uses `contains` for ticker and date. Strategy input is still validated first against the supported strategy set, and then matched case-insensitively against the canonical stored strategy name.
 5. Matching trades are collected into both an index list (for display with their original 1-based numbers) and a new `TradeList` (for the summary calculation).
 6. If no matches are found, `ui.showMessage("No trades match the filter criteria.")` is called.
 7. If matches are found, the matched trades are printed with their original indices, then `SummaryCommand.execute(filteredTrades, ui, storage)` is called on the subset.
@@ -345,7 +348,7 @@ The `execute` method:
 | Prefix   | Field matched | Exact mode         | Partial mode (`-p`)                                                   |
 |----------|---------------|--------------------|-----------------------------------------------------------------------|
 | `t/`     | Ticker symbol | `equals`           | `contains`                                                            |
-| `strat/` | Strategy name | `equalsIgnoreCase` | case-insensitive `contains`                                           |
+| `strat/` | Strategy name | `equalsIgnoreCase` | validated first, then matched against the canonical strategy name     |
 | `d/`     | Trade date    | `equals`           | `contains` (useful for filtering by year or month, e.g., `d/2026-03`) |
 
 ##### Usage Examples
@@ -354,7 +357,7 @@ The `execute` method:
 filter t/AAPL                        → exact ticker match
 filter strat/Breakout d/2026-03      → trades with Breakout strategy in March 2026
 filter -p t/AA                       → all tickers containing "AA" (e.g., AAPL, AAVE)
-filter -p strat/break                → case-insensitive partial strategy match
+filter strat/BB                      → trades matching the canonical Breakout strategy
 ```
 
 ##### Design Rationale
@@ -401,8 +404,10 @@ The strategy shortcut feature is implemented as part of the parser-side normaliz
 
 ##### Component-Level Description
 
-The expansion is implemented as a static lookup in `ParserUtil.parseStrategy(String)`.
-This strategy parsing pipeline is used by `AddCommand`, `EditCommand`, and `FilterCommand`.
+The expansion is implemented in `ParserUtil.parseStrategy(String)`.
+This validation and canonicalization pipeline is used by `AddCommand`, `EditCommand`, and
+`FilterCommand`. `CompareCommand` additionally uses
+`ParserUtil.canonicalizeStoredStrategy(String)` so older stored data can still be grouped safely.
 
 The feature uses an immutable `Map<String, String>` constant, `STRATEGY_SHORTCUTS`,
 defined at the class level:
@@ -412,13 +417,20 @@ private static final Map<String, String> STRATEGY_SHORTCUTS =
         createStrategyShortcuts();
 
 public static String parseStrategy(String strategy) {
-    String trimmedStrategy = strategy.trim();
-    return STRATEGY_SHORTCUTS.getOrDefault(
-            trimmedStrategy.toUpperCase(), trimmedStrategy);
+    String normalizedStrategy = normalizeStrategySpacing(strategy);
+    String canonicalStrategy = canonicalizeStrategyIfKnown(normalizedStrategy);
+
+    if (!CANONICAL_STRATEGY_NAMES.containsValue(canonicalStrategy)) {
+        throw new TradeLogException("Invalid strategy...");
+    }
+    return canonicalStrategy;
 }
 ```
 
-If the input does not match any known shortcut, it is returned unchanged. This means custom strategy names (e.g., `Gap Fill`) continue to work without modification.
+User input is validated against the supported strategy set. Known shortcuts and known canonical
+strategy names are accepted case-insensitively and converted to a canonical stored form
+(e.g. `BB`, `bb`, and `breakout` all become `Breakout`). Unsupported strategy names are rejected
+before a `Trade` is created.
 
 ##### Sequence Diagram - Strategy shortcut expansion during `add`
 
@@ -509,6 +521,10 @@ The `execute` method of `CompareCommand` performs the following steps:
 ##### Class Diagram - CompareCommand and its dependencies
 
 ![Compare command class diagram](diagrams/compare-class-diagram.png)
+
+##### Object Diagram - Example runtime snapshot during `compare`
+
+![Compare command object diagram](diagrams/compare-object-diagram.png)
 
 ##### Design Rationale
 
@@ -728,7 +744,7 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 * **R:R (Risk:Reward)**: The ratio of potential profit to potential loss.
 * **EV (Expected Value)**: The average amount a trader can expect to win or lose per trade.
 * **R-multiple**: A trade's profit or loss expressed as a multiple of the initial risk (e.g., a 2R win means the trade made twice the amount risked).
-* **Strategy shortcut**: A predefined abbreviation (e.g., `BB`) that the system automatically expands to a full strategy name (e.g., `Breakout`) at parse time.
+* **Strategy shortcut**: A predefined abbreviation (e.g., `BB`) that the system validates and expands to a full canonical strategy name (e.g., `Breakout`) at parse time.
 
 ---
 
@@ -744,7 +760,7 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 
 ### E.2 Testing CRUD (v1.0)
 
-1. Run: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/Trend`
+1. Run: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/Breakout`
 2. Verify that the trade summary is printed and `Trade successfully added.` is shown.
 3. Run: `list`
 4. Verify that the trade appears as item `1`.
@@ -765,16 +781,20 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 4. Verify that the second trade is added successfully and the strategy is shown as `Pullback`.
 5. Run: `filter strat/Breakout`
 6. Verify that only the `Breakout` trade is shown and that a filtered summary is printed below it.
-7. Run: `filter -p strat/break`
-8. Verify that the same `Breakout` trade is matched using partial matching.
+7. Run: `filter -p t/AP`
+8. Verify that the same `Breakout` trade is matched using partial ticker matching.
 9. Run: `compare`
 10. Verify that `Breakout` and `Pullback` appear as separate strategy blocks with their own trade counts and metrics.
-11. Run: `undo`
-12. Verify that the most recent change is undone.
-13. Run: `list`
-14. Verify that the second trade is no longer present.
-15. Run: `undo` again.
-16. Verify that the application reports there is no action to undo.
+11. Run: `add t/MSFT d/2026-03-20 dir/long e/100 x/120 s/90 o/win strat/breakout`
+12. Verify that the added trade is stored and displayed as `Breakout`.
+13. Run: `compare`
+14. Verify that the lowercase input is grouped under the same `Breakout` block rather than appearing as a separate strategy.
+15. Run: `undo`
+16. Verify that the most recent change is undone.
+17. Run: `list`
+18. Verify that the third trade is no longer present.
+19. Run: `undo` again.
+20. Verify that the application reports there is no action to undo.
 
 
 

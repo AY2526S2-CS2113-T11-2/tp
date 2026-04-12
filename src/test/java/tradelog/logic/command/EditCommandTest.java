@@ -135,4 +135,11 @@ public class EditCommandTest {
 
         assertEquals("Major Trend Reversal", tradeList.getTrade(0).getStrategy());
     }
+
+    @Test
+    public void execute_invalidStrategy_throwsTradeLogException() {
+        EditCommand command = new EditCommand("1 strat/INVALID");
+        assertThrows(TradeLogException.class, () -> command.execute(tradeList, ui, storage));
+        assertEquals(INIT_STRAT, tradeList.getTrade(0).getStrategy());
+    }
 }

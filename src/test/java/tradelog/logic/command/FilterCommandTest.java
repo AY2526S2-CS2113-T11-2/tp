@@ -40,6 +40,13 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void constructor_invalidStrategy_throwsTradeLogException() {
+        TradeLogException ex = assertThrows(TradeLogException.class,
+                () -> new FilterCommand("strat/INVALID"));
+        assertTrue(ex.getMessage().contains("Invalid strategy"));
+    }
+
+    @Test
     public void execute_filterByTicker_printsExpectedTrade() {
         TradeList tradeList = new TradeList();
         tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long",

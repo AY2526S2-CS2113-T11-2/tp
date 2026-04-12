@@ -1,12 +1,13 @@
 @startuml
+skinparam Style strictuml
 skinparam classAttributeIconSize 0
 hide circles
 
 title Component-Level Description
 
-class " {abstract} \n Command " as Command {
+class "{abstract}\nCommand" as Command {
     --
-    +execute(tradeList, ui, storage)
+    {abstract} +execute(tradeList, ui, storage)
 }
 
 class ListCommand {
@@ -14,14 +15,11 @@ class ListCommand {
     +execute(tradeList, ui, storage)
 }
 
-entity Ui
+class "<<boundary>>\nUi" as Ui {
+    +printTradeList(tradeList)
+}
 
 Command <|-- ListCommand
 ListCommand ..> Ui : calls printTradeList()
-
-note right of ListCommand::execute
-  <b>Logic:</b>
-  ui.printTradeList(tradeList)
-end note
 
 @enduml

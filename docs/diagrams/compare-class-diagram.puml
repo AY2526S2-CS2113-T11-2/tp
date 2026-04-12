@@ -2,8 +2,8 @@
 skinparam Style strictuml
 skinparam classAttributeIconSize 0
 
-abstract class Command {
-    +execute(tradeList, ui, storage)
+class "{abstract}\nCommand" as Command {
+    {abstract} +execute(tradeList, ui, storage)
 }
 
 class CompareCommand {
@@ -31,9 +31,9 @@ class Ui {
 }
 
 Command <|-- CompareCommand
-CompareCommand ..> TradeList : uses
-CompareCommand ..> Ui : uses
-CompareCommand ..> StrategyStats : uses
+CompareCommand ..> TradeList : uses >
+CompareCommand ..> Ui : uses >
+CompareCommand ..> StrategyStats : uses >
 TradeList "1" *--> "*" Trade
-Ui ..> StrategyStats : uses
+Ui ..> StrategyStats : uses >
 @enduml

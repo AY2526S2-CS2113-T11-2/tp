@@ -75,6 +75,27 @@ public class AddCommandTest {
                 "Shortcut should be stored as full strategy name.");
     }
 
+    @Test
+    public void execute_knownStrategyCaseVariant_tradeStoresCanonicalStrategy() throws TradeLogException {
+        String validArgs =
+                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/breakout";
+        AddCommand command = new AddCommand(validArgs);
+
+        command.execute(tradeList, dummyUi, dummyStorage);
+
+        Trade addedTrade = tradeList.getTrade(0);
+        assertEquals("Breakout", addedTrade.getStrategy(),
+                "Known strategy names should be stored in canonical form.");
+    }
+
+    @Test
+    public void constructor_invalidStrategy_throwsTradeLogException() {
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 o/win strat/INVALID";
+        TradeLogException exception = assertThrows(TradeLogException.class,
+                () -> new AddCommand(invalidArgs));
+        assertTrue(exception.getMessage().contains("Invalid strategy"));
+    }
+
     /**
      * Tests if a perfectly formatted command string is accepted without throwing any exceptions.
      */

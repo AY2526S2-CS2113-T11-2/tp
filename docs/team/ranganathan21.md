@@ -19,11 +19,11 @@ Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](ht
 
 2. Added strategy shortcut support.
 
-What it does: allows users to enter short strategy codes such as `BB`, `PB`, and `MTR`, which are automatically expanded into full strategy names.
+What it does: allows users to enter supported short strategy codes such as `BB`, `PB`, and `MTR`, or supported full strategy names, which are validated and normalized into canonical stored strategy names.
 
 Justification: This improves the product because frequent users can log trades faster while the app still stores normalized strategy names for filtering and comparison.
 
-Highlights: I implemented this in `ParserUtil` and integrated it into the parsing flow used by `add`, `edit`, and `filter`. I also updated the welcome UI to display the supported shortcuts, and added regression and unit tests for the shortcut behavior.
+Highlights: I implemented this in `ParserUtil` and integrated it into the parsing flow used by `add`, `edit`, and `filter`, while also ensuring `compare` groups known case variants under the same canonical strategy name. I updated the welcome UI to display the supported shortcuts, and added regression and unit tests for the shortcut behavior.
 Relevant PR: [#44](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/44)
 
 3. Added strategy comparison analytics.
@@ -65,6 +65,7 @@ Added or updated the following UML diagrams:
 - `strategy-shortcut-add-sequence`
 - `compare-sequence`
 - `compare-class-diagram`
+- `compare-object-diagram`
 
 ### Team-based tasks
 

@@ -3,6 +3,7 @@ package tradelog.logic.parser;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +16,7 @@ import tradelog.exception.TradeLogException;
 public class ParserUtil {
 
     private static final Map<String, String> STRATEGY_SHORTCUTS = createStrategyShortcuts();
+    private static final Map<String, String> CANONICAL_STRATEGY_NAMES = createCanonicalStrategyNames();
     private static final Logger logger = Logger.getLogger(ParserUtil.class.getName());
 
     private ParserUtil() {
@@ -34,6 +36,22 @@ public class ParserUtil {
         shortcuts.put("DB", "Double Bottom");
         shortcuts.put("DT", "Double Top");
         return Collections.unmodifiableMap(shortcuts);
+    }
+
+    private static Map<String, String> createCanonicalStrategyNames() {
+        Map<String, String> canonicalStrategyNames = new HashMap<>();
+        for (String canonicalStrategyName : STRATEGY_SHORTCUTS.values()) {
+            canonicalStrategyNames.put(toStrategyLookupKey(canonicalStrategyName), canonicalStrategyName);
+        }
+        return Collections.unmodifiableMap(canonicalStrategyNames);
+    }
+
+    private static String normalizeStrategySpacing(String strategy) {
+        return strategy.trim().replaceAll("\\s+", " ");
+    }
+
+    private static String toStrategyLookupKey(String strategy) {
+        return normalizeStrategySpacing(strategy).toUpperCase();
     }
 
     /**
@@ -77,25 +95,60 @@ public class ParserUtil {
         throw new TradeLogException("Direction must be exactly 'long' or 'short'!");
     }
 
-    /**
-     * Expands a known strategy shortcut into its full strategy name.
-     *
-     * @param strategy The raw strategy input from the user.
-     * @return The expanded strategy name if a shortcut is recognised, otherwise the trimmed input.
-     */
-    public static String parseStrategy(String strategy) {
-        assert strategy != null : "Strategy should not be null";
+    private static String canonicalizeStrategyIfKnown(String strategy) {
+        String normalizedStrategy = normalizeStrategySpacing(strategy);
+        String strategyLookupKey = toStrategyLookupKey(strategy);
+        String canonicalStrategy = STRATEGY_SHORTCUTS.get(strategyLookupKey);
 
-        String trimmedStrategy = strategy.trim();
-        String expandedStrategy = STRATEGY_SHORTCUTS.getOrDefault(
-                trimmedStrategy.toUpperCase(), trimmedStrategy);
-
-        if (!expandedStrategy.equals(trimmedStrategy)) {
+        if (canonicalStrategy != null) {
             logger.log(Level.INFO, "Expanded strategy shortcut {0} to {1}",
-                    new Object[] {trimmedStrategy, expandedStrategy});
+                    new Object[] {normalizedStrategy, canonicalStrategy});
+            return canonicalStrategy;
         }
 
-        return expandedStrategy;
+        canonicalStrategy = CANONICAL_STRATEGY_NAMES.get(strategyLookupKey);
+        if (canonicalStrategy != null && !canonicalStrategy.equals(normalizedStrategy)) {
+            logger.log(Level.INFO, "Canonicalized strategy name {0} to {1}",
+                    new Object[] {normalizedStrategy, canonicalStrategy});
+        }
+
+        return canonicalStrategy != null ? canonicalStrategy : normalizedStrategy;
+    }
+
+    /**
+     * Expands a known strategy shortcut or canonicalizes a known full strategy name.
+     *
+     * @param strategy The raw strategy input from the user.
+     * @return The canonical strategy name.
+     * @throws TradeLogException If the strategy is blank or not one of the supported values.
+     */
+    public static String parseStrategy(String strategy) throws TradeLogException {
+        assert strategy != null : "Strategy should not be null";
+
+        String normalizedStrategy = normalizeStrategySpacing(strategy);
+        if (normalizedStrategy.isEmpty()) {
+            throw new TradeLogException("Strategy cannot be empty.");
+        }
+
+        String canonicalStrategy = canonicalizeStrategyIfKnown(normalizedStrategy);
+        if (!CANONICAL_STRATEGY_NAMES.containsValue(canonicalStrategy)) {
+            throw new TradeLogException("Invalid strategy. Use one of the supported strategy shortcuts "
+                    + "or canonical strategy names shown at startup.");
+        }
+
+        return canonicalStrategy;
+    }
+
+    /**
+     * Canonicalizes a strategy name if it is recognised, otherwise returns the trimmed input.
+     * This is intended for existing stored data where unknown legacy values should not break features.
+     *
+     * @param strategy The stored strategy value.
+     * @return The canonical known strategy name, or the trimmed original string if unknown.
+     */
+    public static String canonicalizeStoredStrategy(String strategy) {
+        assert strategy != null : "Strategy should not be null";
+        return canonicalizeStrategyIfKnown(strategy);
     }
 
     /**

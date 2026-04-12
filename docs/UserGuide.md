@@ -49,6 +49,8 @@ TradeLog is optimized for users who can type quickly and prefer entering command
   Example: `add t/AAPL d/2026-03-18 ...` and `add d/2026-03-18 t/AAPL ...` are both accepted.
 - Trade indices shown by the app are 1-based.
 - Strategy shortcuts such as `BB` and `PB` are expanded automatically.
+- For `strat/`, only the supported shortcuts or their supported full strategy names are accepted.
+  Matching is case-insensitive and stored in canonical form.
 
 Current strategy shortcuts:
 
@@ -115,6 +117,7 @@ Notes:
 - All fields are required in the current version.
 - `dir/` must be `long` or `short`.
 - The stop loss must be on the correct side of the entry price for the chosen direction.
+- `strat/` must be one of the supported strategy shortcuts or supported full strategy names.
 
 ### Listing all trades: `list`
 
@@ -173,6 +176,7 @@ Notes:
 
 - `INDEX` must refer to an existing trade shown by `list` or `filter`.
 - Strategy shortcuts also work in `edit`.
+- Unsupported strategy names are rejected in `edit` just as they are in `add`.
 
 ### Deleting a trade: `delete`
 
@@ -208,7 +212,7 @@ Examples:
 filter t/AAPL
 filter strat/Breakout d/2026-03
 filter -p t/AA
-filter -p strat/break
+filter strat/BB
 ```
 
 Current behavior:
@@ -216,6 +220,7 @@ Current behavior:
 - At least one of `t/`, `strat/`, or `d/` must be provided.
 - Without `-p`, matching is exact.
 - With `-p`, matching becomes partial.
+- `strat/` must use a supported strategy shortcut or supported full strategy name.
 - Matching trades are shown using their original indices from the full trade list.
 - After showing the filtered trades, TradeLog also shows a summary for just those filtered results.
 
@@ -238,6 +243,11 @@ Total R: +1.50R
 ```
 
 ![Filter command showing matched trades and filtered summary](images/ug-filter-summary.png)
+
+Notes:
+
+- Strategy filters are validated first, so unsupported or misspelled strategy names are rejected.
+- Strategy shortcuts such as `BB` are accepted and treated the same as their canonical names such as `Breakout`.
 
 ### Comparing strategies: `compare`
 
@@ -273,6 +283,8 @@ EV: +1.500R
 ```
 
 If there are no trades, TradeLog shows the same empty-summary message used by `summary`.
+
+Known strategy variants are grouped under the same canonical strategy name during comparison.
 
 ### Viewing overall performance: `summary`
 

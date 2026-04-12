@@ -3,12 +3,14 @@ hide footbox
 skinparam Style strictuml
 skinparam SequenceMessageAlign center
 
-participant "caller" as Caller
 participant ":Ui" as Ui
 participant "tl:TradeList" as TradeList
 
-Caller -> Ui : printTradeList(tradeList)
 activate Ui
+note over Ui
+    prints divider before
+    evaluating the trade list
+end note
 
 Ui -> TradeList : isEmpty()
 activate TradeList
@@ -16,10 +18,7 @@ TradeList --> Ui : isEmpty
 deactivate TradeList
 
 alt tradeList is empty
-    note over Ui
-        prints divider and
-        empty-list message
-    end note
+    note over Ui : prints empty-list message
 else tradeList is not empty
     Ui -> TradeList : size()
     activate TradeList
@@ -33,11 +32,13 @@ else tradeList is not empty
         deactivate TradeList
     end
 
-    note over Ui
-        prints divider and
-        numbered trades
-    end note
+    note over Ui : prints numbered trades
 end
+
+note over Ui
+    prints divider before
+    returning from the method
+end note
 
 deactivate Ui
 @enduml
