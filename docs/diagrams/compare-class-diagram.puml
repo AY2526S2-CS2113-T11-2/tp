@@ -31,9 +31,9 @@ class Ui {
 }
 
 Command <|-- CompareCommand
-CompareCommand ..> TradeList : uses
-CompareCommand ..> Ui : uses
-CompareCommand ..> StrategyStats : uses
+CompareCommand ..> TradeList : uses >
+CompareCommand ..> Ui : uses >
+CompareCommand ..> StrategyStats : uses >
 TradeList "1" *--> "*" Trade
-Ui ..> StrategyStats : uses
+Ui ..> StrategyStats : uses >
 @enduml

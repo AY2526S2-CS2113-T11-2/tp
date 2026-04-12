@@ -5,7 +5,7 @@ skinparam SequenceMessageAlign center
 
 participant "user" as User
 participant ":TradeLog" as TradeLog
-participant ":Parser" as Parser
+participant "<<class>>\nParser" as Parser
 participant "cc:CompareCommand" as CompareCommand
 participant "tl:TradeList" as TradeList
 participant "t:Trade" as Trade
@@ -16,12 +16,16 @@ activate TradeLog
 
 TradeLog -> Parser : parseCommand("compare")
 activate Parser
+create CompareCommand
 Parser -> CompareCommand : new CompareCommand()
 activate CompareCommand
+CompareCommand --> Parser : cc
+deactivate CompareCommand
 Parser --> TradeLog : cc
 deactivate Parser
 
 TradeLog -> CompareCommand : execute(tradeList, ui, storage)
+activate CompareCommand
 
 CompareCommand -> TradeList : isEmpty()
 activate TradeList

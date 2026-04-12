@@ -5,9 +5,9 @@ skinparam SequenceMessageAlign center
 
 participant "user" as User
 participant ":TradeLog" as TradeLog
-participant ":Parser" as Parser
+participant "<<class>>\nParser" as Parser
 participant "ac:AddCommand" as AddCommand
-participant ":ParserUtil" as ParserUtil
+participant "<<class>>\nParserUtil" as ParserUtil
 participant "t:Trade" as Trade
 participant "tl:TradeList" as TradeList
 participant ":Ui" as Ui
@@ -17,22 +17,28 @@ activate TradeLog
 
 TradeLog -> Parser : parseCommand(...)
 activate Parser
+create AddCommand
 Parser -> AddCommand : new AddCommand(arguments)
 activate AddCommand
+AddCommand --> Parser : ac
+deactivate AddCommand
 Parser --> TradeLog : ac
 deactivate Parser
+
+TradeLog -> AddCommand : execute(tradeList, ui, storage)
+activate AddCommand
 
 AddCommand -> ParserUtil : parseStrategy("BB")
 activate ParserUtil
 ParserUtil --> AddCommand : "Breakout"
 deactivate ParserUtil
 
+create Trade
 AddCommand -> Trade : new Trade(..., "Breakout")
 activate Trade
 Trade --> AddCommand
 deactivate Trade
 
-TradeLog -> AddCommand : execute(tradeList, ui, storage)
 AddCommand -> TradeList : addTrade(t)
 activate TradeList
 TradeList --> AddCommand
