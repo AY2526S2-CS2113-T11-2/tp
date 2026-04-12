@@ -15,13 +15,13 @@ public class EncryptCommand extends Command {
         this.argument = argument.trim().toLowerCase();
     }
 
-    @Override
     /**
      * Allows user to enable or disable encryption for stored trade data.
      * When enabled, trades will be encrypted before being saved to the file.
      * When disabled, trades will be saved in plaintext.
      * The user can also check the current encryption status.
      */
+    @Override
     public void execute(TradeList tradeList, Ui ui, Storage storage) {
         switch (argument) {
         case "on":
