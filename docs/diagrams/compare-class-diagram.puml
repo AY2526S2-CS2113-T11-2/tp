@@ -2,8 +2,8 @@
 skinparam Style strictuml
 skinparam classAttributeIconSize 0
 
-abstract class Command {
-    +execute(tradeList, ui, storage)
+class "{abstract}\nCommand" as Command {
+    {abstract} +execute(tradeList, ui, storage)
 }
 
 class CompareCommand {

@@ -3,7 +3,6 @@ hide footbox
 skinparam Style strictuml
 skinparam SequenceMessageAlign center
 
-participant "user" as User
 participant ":TradeLog" as TradeLog
 participant "<<class>>\nParser" as Parser
 participant "ac:AddCommand" as AddCommand
@@ -12,7 +11,6 @@ participant "t:Trade" as Trade
 participant "tl:TradeList" as TradeList
 participant ":Ui" as Ui
 
-User -> TradeLog : input "add ... strat/BB"
 activate TradeLog
 
 TradeLog -> Parser : parseCommand(...)
@@ -53,6 +51,5 @@ Ui --> AddCommand
 deactivate Ui
 AddCommand --> TradeLog
 deactivate AddCommand
-TradeLog --> User
 deactivate TradeLog
 @enduml

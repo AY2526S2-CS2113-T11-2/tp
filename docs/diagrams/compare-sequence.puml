@@ -3,7 +3,6 @@ hide footbox
 skinparam Style strictuml
 skinparam SequenceMessageAlign center
 
-participant "user" as User
 participant ":TradeLog" as TradeLog
 participant "<<class>>\nParser" as Parser
 participant "cc:CompareCommand" as CompareCommand
@@ -11,7 +10,6 @@ participant "tl:TradeList" as TradeList
 participant "t:Trade" as Trade
 participant ":Ui" as Ui
 
-User -> TradeLog : input "compare"
 activate TradeLog
 
 TradeLog -> Parser : parseCommand("compare")
@@ -69,6 +67,5 @@ end
 
 CompareCommand --> TradeLog
 deactivate CompareCommand
-TradeLog --> User
 deactivate TradeLog
 @enduml

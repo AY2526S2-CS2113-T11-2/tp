@@ -7,7 +7,7 @@ title CompareCommand Object Diagram
 
 object "cc:CompareCommand" as CompareCommand
 
-object "ui:Ui" as Ui <<boundary>>
+object "ui:Ui" as Ui
 
 object "tl:TradeList" as TradeList {
     size = 3
@@ -38,15 +38,15 @@ object "pullbackStats:StrategyStats" as PullbackStats {
     expectedValue = 1.5
 }
 
-CompareCommand --> TradeList
-CompareCommand --> Ui
-CompareCommand --> BreakoutStats
-CompareCommand --> PullbackStats
+CompareCommand -- TradeList
+CompareCommand -- Ui
+CompareCommand -- BreakoutStats
+CompareCommand -- PullbackStats
 TradeList -- Trade1
 TradeList -- Trade2
 TradeList -- Trade3
-Ui --> BreakoutStats
-Ui --> PullbackStats
+Ui -- BreakoutStats
+Ui -- PullbackStats
 
 note bottom of CompareCommand
   Known strategy variants are
