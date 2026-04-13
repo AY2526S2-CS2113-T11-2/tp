@@ -48,7 +48,7 @@ public class AddCommandTest {
      */
     @Test
     public void execute_validCommand_tradeAddedSuccessfully() throws TradeLogException {
-        String validArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170strat/Breakout";
+        String validArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/Breakout";
         AddCommand command = new AddCommand(validArgs);
 
         command.execute(tradeList, dummyUi, dummyStorage);
@@ -65,7 +65,7 @@ public class AddCommandTest {
     @Test
     public void execute_strategyShortcut_tradeStoresExpandedStrategy() throws TradeLogException {
         String validArgs =
-                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170strat/BB";
+                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/BB";
         AddCommand command = new AddCommand(validArgs);
 
         command.execute(tradeList, dummyUi, dummyStorage);
@@ -78,7 +78,7 @@ public class AddCommandTest {
     @Test
     public void execute_knownStrategyCaseVariant_tradeStoresCanonicalStrategy() throws TradeLogException {
         String validArgs =
-                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170strat/breakout";
+                " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/breakout";
         AddCommand command = new AddCommand(validArgs);
 
         command.execute(tradeList, dummyUi, dummyStorage);
@@ -90,7 +90,7 @@ public class AddCommandTest {
 
     @Test
     public void constructor_invalidStrategy_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170strat/INVALID";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/INVALID";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Invalid strategy"));
@@ -101,7 +101,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_validInput_doesNotThrowException() {
-        String validArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170strat/Breakout";
+        String validArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/Breakout";
         assertDoesNotThrow(() -> new AddCommand(validArgs));
     }
 
@@ -110,7 +110,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_missingPrefix_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL dir/long e/180 x/190 s/170strat/Breakout";
+        String invalidArgs = " t/AAPL dir/long e/180 x/190 s/170 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Missing required prefix: d/"));
@@ -121,7 +121,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_blankPrefixValue_throwsTradeLogException() {
-        String invalidArgs = " t/ d/2026-02-18 dir/long e/180 x/190 s/170strat/Breakout";
+        String invalidArgs = " t/ d/2026-02-18 dir/long e/180 x/190 s/170 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("cannot be empty"));
@@ -132,7 +132,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_entryEqualsStopLoss_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/180strat/Breakout";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/180 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Entry price and stop loss price"));
@@ -143,7 +143,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_invalidDirection_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/up e/180 x/190 s/170strat/Breakout";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/up e/180 x/190 s/170 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Direction must be exactly"));
@@ -154,7 +154,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_invalidPrice_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/abc x/190 s/170strat/Breakout";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/abc x/190 s/170 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("valid number"));
@@ -165,7 +165,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_longTradeStopLossAboveEntry_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/190strat/Breakout";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/long e/180 x/190 s/190 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Long position"));
@@ -176,7 +176,7 @@ public class AddCommandTest {
      */
     @Test
     public void constructor_shortTradeStopLossBelowEntry_throwsTradeLogException() {
-        String invalidArgs = " t/AAPL d/2026-02-18 dir/short e/180 x/170 s/170strat/Breakout";
+        String invalidArgs = " t/AAPL d/2026-02-18 dir/short e/180 x/170 s/170 strat/Breakout";
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> new AddCommand(invalidArgs));
         assertTrue(exception.getMessage().contains("Short position"));
