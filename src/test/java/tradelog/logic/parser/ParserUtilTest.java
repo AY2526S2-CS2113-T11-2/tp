@@ -10,13 +10,13 @@ import tradelog.exception.TradeLogException;
 public class ParserUtilTest {
 
     @Test
-    public void parseStrategy_knownShortcut_returnsExpandedName() throws Exception {
+    public void parseStrategy_knownShortcut_returnsExpandedName() {
         assertEquals("Breakout", ParserUtil.parseStrategy("BB"));
         assertEquals("Major Trend Reversal", ParserUtil.parseStrategy("mtr"));
     }
 
     @Test
-    public void parseStrategy_knownFullNameCaseVariant_returnsCanonicalName() throws Exception {
+    public void parseStrategy_knownFullNameCaseVariant_returnsCanonicalName() {
         assertEquals("Breakout", ParserUtil.parseStrategy("breakout"));
         assertEquals("Major Trend Reversal", ParserUtil.parseStrategy("  major   trend reversal "));
     }
@@ -38,7 +38,7 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseTicker_validTicker_returnsUppercase() throws Exception {
+    public void parseTicker_validTicker_returnsUppercase() {
         assertEquals("AAPL", ParserUtil.parseTicker("aapl"));
         assertEquals("MSFT", ParserUtil.parseTicker("  msft  "));
     }
@@ -50,7 +50,7 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePrice_validPrice_returnsDouble() throws Exception {
+    public void parsePrice_validPrice_returnsDouble() {
         assertEquals(150.5, ParserUtil.parsePrice("150.5", "Entry"));
     }
 
@@ -62,7 +62,7 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseDirection_validDirection_returnsFormatted() throws Exception {
+    public void parseDirection_validDirection_returnsFormatted() {
         assertEquals("Long", ParserUtil.parseDirection("long"));
         assertEquals("Short", ParserUtil.parseDirection("SHORT"));
     }
