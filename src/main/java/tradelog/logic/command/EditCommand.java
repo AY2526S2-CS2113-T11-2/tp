@@ -98,8 +98,7 @@ public class EditCommand extends Command {
         ParserUtil.validatePrices(newEntry, newStop);
 
         // Step B: Ensure stop loss is on the correct side
-        // Note: teammate's validateStopLoss expects lowercase "long"/"short"
-        ParserUtil.validateStopLoss(newDir.toLowerCase(), newEntry, newStop);
+        ParserUtil.validateStopLoss(newDir, newEntry, newStop);
 
         // Save state only after all parsing/validation succeeds
         UndoCommand.saveState(tradeList);
