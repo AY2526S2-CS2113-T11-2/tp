@@ -212,17 +212,16 @@ public class Storage {
         try {
             String data = isEncrypted ? decrypt(line) : line;
             String[] parts = data.split(" \\| ");
-            if (parts.length == 8) {
+            if (parts.length == 7) {
                 String ticker = parts[0];
                 String date = parts[1];
                 String direction = parts[2];
                 double entryPrice = Double.parseDouble(parts[3]);
                 double exitPrice = Double.parseDouble(parts[4]);
                 double stopLossPrice = Double.parseDouble(parts[5]);
-                String outcome = parts[6];
-                String strategy = parts[7];
+                String strategy = parts[6];
                 tradeList.addTrade(new Trade(ticker, date, direction,
-                        entryPrice, exitPrice, stopLossPrice, outcome, strategy));
+                        entryPrice, exitPrice, stopLossPrice, strategy));
             }
         } catch (Exception e) {
             throw new TradeLogException("Failed to decrypt trade data. "

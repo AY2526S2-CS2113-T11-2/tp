@@ -14,7 +14,7 @@ public class TradeTest {
      */
     @Test
     public void getRiskRewardRatio_longTrade_calculatesCorrectly() {
-        Trade trade = new Trade("AAPL", "2026-02-18", "Long", 180.0, 190.0, 170.0, "Win", "Breakout");
+        Trade trade = new Trade("AAPL", "2026-02-18", "Long", 180.0, 190.0, 170.0, "Breakout");
         assertEquals(1.0, trade.getRiskRewardRatio(), 0.001);
     }
 
@@ -24,7 +24,7 @@ public class TradeTest {
      */
     @Test
     public void getRiskRewardRatio_shortTrade_calculatesCorrectly() {
-        Trade trade = new Trade("TSLA", "2026-02-17", "Short", 180.0, 170.0, 190.0, "Win", "Pullback");
+        Trade trade = new Trade("TSLA", "2026-02-17", "Short", 180.0, 170.0, 190.0, "Pullback");
         assertEquals(1.0, trade.getRiskRewardRatio(), 0.001);
     }
 
@@ -33,7 +33,7 @@ public class TradeTest {
      */
     @Test
     public void getRiskRewardRatio_zeroRisk_returnsZero() {
-        Trade trade = new Trade("EURUSD", "2026-02-16", "Long", 1.33, 1.34, 1.33, "Win", "Range");
+        Trade trade = new Trade("EURUSD", "2026-02-16", "Long", 1.33, 1.34, 1.33, "Range");
         assertEquals(0.0, trade.getRiskRewardRatio(), 0.001);
     }
 
@@ -42,7 +42,7 @@ public class TradeTest {
      */
     @Test
     public void toSummaryString_validTrade_formatsCorrectly() {
-        Trade trade = new Trade("AAPL", "2026-02-18", "Long", 180.0, 190.0, 170.0, "Win", "Breakout");
+        Trade trade = new Trade("AAPL", "2026-02-18", "Long", 180.0, 190.0, 170.0, "Breakout");
 
         String expectedOutput = "Trade Summary:\n" +
                 "Ticker: AAPL\n" +

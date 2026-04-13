@@ -60,8 +60,8 @@ public class DeleteCommandTest {
         dummyStorage = new Storage("dummy_delete_storage.txt");
 
         // Add two dummy trades so we have data to delete
-        tradeList.addTrade(new Trade("AAPL", "2023-10-10", "long", 150.0, 160.0, 140.0, "WIN", "Trend"));
-        tradeList.addTrade(new Trade("TSLA", "2023-10-11", "short", 200.0, 180.0, 210.0, "WIN", "Breakout"));
+        tradeList.addTrade(new Trade("AAPL", "2023-10-10", "long", 150.0, 160.0, 140.0, "Trend"));
+        tradeList.addTrade(new Trade("TSLA", "2023-10-11", "short", 200.0, 180.0, 210.0, "Breakout"));
     }
 
     /**

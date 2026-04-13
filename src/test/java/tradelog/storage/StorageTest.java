@@ -55,7 +55,7 @@ public class StorageTest {
     public void saveAndLoadTrades_validData_successfulIntegration() throws TradeLogException {
         TradeList originalList = new TradeList();
         Trade trade = new Trade("AAPL", "2023-10-10", "long",
-                150.0, 160.0, 140.0, "WIN", "Trend");
+                150.0, 160.0, 140.0, "Trend");
         originalList.addTrade(trade);
         storage.saveTrades(originalList);
         TradeList loadedList = storage.loadTrades();
@@ -65,7 +65,6 @@ public class StorageTest {
         Trade loadedTrade = loadedList.getTrade(0);
         assertEquals("AAPL", loadedTrade.getTicker(), "Ticker should match the saved trade.");
         assertEquals(150.0, loadedTrade.getEntryPrice(), "Entry price should match.");
-        assertEquals("WIN", loadedTrade.getOutcome(), "Outcome should match.");
     }
 
     /**

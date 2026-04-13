@@ -18,7 +18,7 @@ public class AddCommand extends Command {
 
     /** The required prefixes for the add command. */
     public static final String[] REQUIRED_PREFIXES = {
-        "t/", "d/", "dir/", "e/", "x/", "s/", "o/", "strat/"};
+        "t/", "d/", "dir/", "e/", "x/", "s/", "strat/"};
 
     private final Trade addTrade;
 
@@ -50,11 +50,10 @@ public class AddCommand extends Command {
         String ticker = ParserUtil.parseTicker(parsedArgs.get("t/"));
         String direction = ParserUtil.parseDirection(parsedArgs.get("dir/"));
         String date = parsedArgs.get("d/").trim();
-        String outcome = parsedArgs.get("o/").trim();
         String strategy = ParserUtil.parseStrategy(parsedArgs.get("strat/"));
 
         this.addTrade = new Trade(ticker, date, direction,
-                entryPrice, exitPrice, stopLossPrice, outcome, strategy);
+                entryPrice, exitPrice, stopLossPrice, strategy);
 
         assert addTrade.getTicker().equals(ticker) : "Ticker should match parsed value";
         assert addTrade.getEntryPrice() == entryPrice : "Entry price should match parsed value";

@@ -11,7 +11,6 @@ public class Trade {
     private double entryPrice;
     private double exitPrice;
     private double stopLossPrice;
-    private String outcome;
     private String strategy;
 
     /**
@@ -23,11 +22,10 @@ public class Trade {
      * @param entryPrice    The price at which the trade was entered.
      * @param exitPrice     The price at which the trade was exited.
      * @param stopLossPrice The stop loss price set for the trade.
-     * @param outcome       The outcome of the trade (Win or Loss).
      * @param strategy      The strategy used for the trade.
      */
     public Trade(String ticker, String date, String direction, double entryPrice,
-                 double exitPrice, double stopLossPrice, String outcome, String strategy) {
+                 double exitPrice, double stopLossPrice, String strategy) {
         assert direction.equalsIgnoreCase("Long") || direction.equalsIgnoreCase("Short") :
                 "Direction must be 'Long' or 'Short'";
         assert !Double.isNaN(entryPrice) && !Double.isInfinite(entryPrice) :
@@ -43,7 +41,6 @@ public class Trade {
         this.entryPrice = entryPrice;
         this.exitPrice = exitPrice;
         this.stopLossPrice = stopLossPrice;
-        this.outcome = outcome;
         this.strategy = strategy;
     }
 
@@ -123,7 +120,6 @@ public class Trade {
                 + entryPrice + " | "
                 + exitPrice + " | "
                 + stopLossPrice + " | "
-                + outcome + " | "
                 + strategy;
     }
 
@@ -141,7 +137,7 @@ public class Trade {
                 + "E:" + formatPrice(entryPrice) + " | "
                 + "TP:" + formatPrice(exitPrice) + " | "
                 + "SL:" + formatPrice(stopLossPrice) + " | "
-                + outcome + " | "
+                + getOutcome() + " | "
                 + strategy;
     }
 
@@ -205,13 +201,20 @@ public class Trade {
     }
 
     /**
-     * Returns the trade outcome.
+     * Returns the outcome of the trade, derived from the Risk:Reward ratio.
+     * A positive RR is a Win, negative is a Loss, and zero is a Breakeven.
      *
-     * @return The outcome (Win or Loss).
+     * @return "Win", "Loss", or "Breakeven".
      */
-    @SuppressWarnings("unused")
     public String getOutcome() {
-        return outcome;
+        double rr = getRiskRewardRatio();
+        if (rr > 0) {
+            return "Win";
+        } else if (rr < 0) {
+            return "Loss";
+        } else {
+            return "Breakeven";
+        }
     }
 
     /**
@@ -278,15 +281,6 @@ public class Trade {
     }
 
     /**
-     * Sets the trade outcome.
-     *
-     * @param outcome The new outcome (Win or Loss).
-     */
-    public void setOutcome(String outcome) {
-        this.outcome = outcome;
-    }
-
-    /**
      * Sets the trade strategy.
      *
      * @param strategy The new strategy description.
@@ -309,7 +303,6 @@ public class Trade {
                 && Double.compare(entryPrice, other.entryPrice) == 0
                 && Double.compare(exitPrice, other.exitPrice) == 0
                 && Double.compare(stopLossPrice, other.stopLossPrice) == 0
-                && outcome.equals(other.outcome)
                 && strategy.equals(other.strategy);
     }
 }

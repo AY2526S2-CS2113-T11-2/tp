@@ -84,7 +84,6 @@ public class UndoCommand extends Command {
                 trade.getEntryPrice(),
                 trade.getExitPrice(),
                 trade.getStopLossPrice(),
-                trade.getOutcome(),
                 trade.getStrategy()
         );
     }

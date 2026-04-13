@@ -23,7 +23,6 @@ public class EditCommandTest {
     private static final double INIT_ENTRY = 150.0;
     private static final double INIT_EXIT = 160.0;
     private static final double INIT_STOP = 140.0;
-    private static final String INIT_OUTCOME = "Open";
     private static final String INIT_STRAT = "Trend";
 
     private TradeList tradeList;
@@ -34,7 +33,7 @@ public class EditCommandTest {
     public void setUp() {
         tradeList = new TradeList();
         Trade initialTrade = new Trade(INIT_TICKER, INIT_DATE, INIT_DIR,
-                INIT_ENTRY, INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+                INIT_ENTRY, INIT_EXIT, INIT_STOP, INIT_STRAT);
         tradeList.addTrade(initialTrade);
 
         ui = new Ui();
@@ -46,8 +45,7 @@ public class EditCommandTest {
      * Arguments are wrapped to comply with 120-character line length limit.
      */
     private void assertTradeUnchanged(int index, String ticker, String date, String dir,
-                                      double entry, double exit, double stop,
-                                      String outcome, String strat) {
+                                      double entry, double exit, double stop, String strat) {
         Trade current = tradeList.getTrade(index);
         assertEquals(ticker, current.getTicker(), "Atomicity Failure: Ticker modified");
         assertEquals(date, current.getDate(), "Atomicity Failure: Date modified");
@@ -55,24 +53,22 @@ public class EditCommandTest {
         assertEquals(entry, current.getEntryPrice(), "Atomicity Failure: Entry price modified");
         assertEquals(exit, current.getExitPrice(), "Atomicity Failure: Exit price modified");
         assertEquals(stop, current.getStopLossPrice(), "Atomicity Failure: Stop loss modified");
-        assertEquals(outcome, current.getOutcome(), "Atomicity Failure: Outcome modified");
         assertEquals(strat, current.getStrategy(), "Atomicity Failure: Strategy modified");
     }
 
     @Test
     public void execute_validEdit_tradeUpdatedSuccessfully() throws TradeLogException {
-        EditCommand command = new EditCommand("1 x/175.0 o/WIN");
+        EditCommand command = new EditCommand("1 x/175.0");
         command.execute(tradeList, ui, storage);
 
         Trade updatedTrade = tradeList.getTrade(0);
         assertEquals(175.0, updatedTrade.getExitPrice());
-        assertEquals("WIN", updatedTrade.getOutcome());
     }
 
     @Test
     public void execute_editSecondTrade_success() throws TradeLogException {
         String newTicker = "MSFT";
-        Trade secondTrade = new Trade("TSLA", "2024-01-01", "short", 250.0, 230.0, 260.0, "WIN", "Swing");
+        Trade secondTrade = new Trade("TSLA", "2024-01-01", "short", 250.0, 230.0, 260.0, "Swing");
         tradeList.addTrade(secondTrade);
 
         EditCommand command = new EditCommand("2 t/" + newTicker);
@@ -80,10 +76,10 @@ public class EditCommandTest {
 
         // Line wrapped to satisfy Checkstyle 120-char limit
         assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
-                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+                INIT_EXIT, INIT_STOP, INIT_STRAT);
 
         assertTradeUnchanged(1, newTicker, "2024-01-01", "short", 250.0,
-                230.0, 260.0, "WIN", "Swing");
+                230.0, 260.0, "Swing");
     }
 
     @Test
@@ -107,7 +103,7 @@ public class EditCommandTest {
 
         // Line wrapped to satisfy Checkstyle 120-char limit
         assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
-                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+                INIT_EXIT, INIT_STOP, INIT_STRAT);
     }
 
     @Test
@@ -118,7 +114,7 @@ public class EditCommandTest {
 
         // Line wrapped to satisfy Checkstyle 120-char limit
         assertTradeUnchanged(0, INIT_TICKER, INIT_DATE, INIT_DIR, INIT_ENTRY,
-                INIT_EXIT, INIT_STOP, INIT_OUTCOME, INIT_STRAT);
+                INIT_EXIT, INIT_STOP, INIT_STRAT);
     }
 
     @Test
