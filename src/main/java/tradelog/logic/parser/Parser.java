@@ -10,6 +10,7 @@ import tradelog.logic.command.ExitCommand;
 import tradelog.logic.command.ListCommand;
 import tradelog.logic.command.SummaryCommand;
 import tradelog.logic.command.FilterCommand;
+import tradelog.logic.command.EncryptCommand;
 import tradelog.logic.command.UndoCommand;
 
 /**
@@ -37,6 +38,7 @@ public class Parser {
         case "filter" -> new FilterCommand(arguments);
         case "compare" -> new CompareCommand();
         case "summary" -> new SummaryCommand();
+        case "encrypt" -> new EncryptCommand(arguments);
         case "undo" -> new UndoCommand();
         case "exit" -> new ExitCommand();
         default -> throw new TradeLogException(

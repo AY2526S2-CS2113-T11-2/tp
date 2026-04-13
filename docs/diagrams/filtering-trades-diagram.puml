@@ -10,8 +10,12 @@ participant SummaryCommand
 TradeLog -> FilterCommand : execute(tradeList, ui, storage)
 activate FilterCommand
 
+' Correct constructor notation for TradeList with return arrow
 create "filteredTrades : TradeList" as FT
-FilterCommand -> FT : new TradeList()
+FilterCommand -> FT : TradeList()
+activate FT
+FT --> FilterCommand
+deactivate FT
 
 loop i=0..size-1
     FilterCommand -> TradeList : getTrade(i)
@@ -35,8 +39,12 @@ else matches found
     end
     FilterCommand -> Ui : showLine()
     
+    ' Correct constructor notation for SummaryCommand with return arrow
     create SummaryCommand
-    FilterCommand -> SummaryCommand : new SummaryCommand()
+    FilterCommand -> SummaryCommand : SummaryCommand()
+    activate SummaryCommand
+    SummaryCommand --> FilterCommand
+    deactivate SummaryCommand
     
     FilterCommand -> SummaryCommand : execute(filteredTrades, ui, storage)
     activate SummaryCommand

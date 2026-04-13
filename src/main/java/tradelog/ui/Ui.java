@@ -16,7 +16,7 @@ public class Ui {
 
     private static final String DIVIDER = "-".repeat(80);
     private static final String COMMAND_LIST =
-            "Commands: add, list, edit, delete, filter, compare, summary, undo, exit";
+            "Commands: add, list, edit, delete, filter, compare, summary, encrypt, undo, exit";
     private static final String STRATEGY_SHORTCUTS_HEADER = "Strategy shortcuts:";
     private static final Logger logger = Logger.getLogger(Ui.class.getName());
     private final java.util.Scanner scanner = new java.util.Scanner(System.in);

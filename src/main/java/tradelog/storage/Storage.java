@@ -18,13 +18,16 @@ import tradelog.model.Trade;
 import tradelog.model.TradeList;
 
 /**
- * Handles reading and writing of trade data to and from a file in an encrypted format.
+ * Handles reading and writing of trade data to and from a file.
+ * Supports both plaintext and AES-encrypted storage, toggled by the user.
  */
 public class Storage {
 
     private static final String ALGORITHM = "AES";
+    private static final String ENCRYPTED_FLAG = "ENCRYPTED:";
     private SecretKeySpec secretKey;
     private String passwordHash;
+    private boolean encryptionEnabled;
 
     /** Path to the file used for persistent storage. */
     private final String filePath;
@@ -36,6 +39,25 @@ public class Storage {
      */
     public Storage(String filePath) {
         this.filePath = filePath;
+        this.encryptionEnabled = false;
+    }
+
+    /**
+     * Returns whether encryption is currently enabled.
+     *
+     * @return true if encryption is enabled, false otherwise.
+     */
+    public boolean isEncryptionEnabled() {
+        return encryptionEnabled;
+    }
+
+    /**
+     * Sets whether encryption is enabled for saving trades.
+     *
+     * @param enabled true to enable encryption, false to disable.
+     */
+    public void setEncryptionEnabled(boolean enabled) {
+        this.encryptionEnabled = enabled;
     }
 
     /**
@@ -118,12 +140,13 @@ public class Storage {
                 }
             }
             try (FileWriter writer = new FileWriter(filePath)) {
-                // Write password hash on the first line
                 writer.write(passwordHash);
                 writer.write("\n");
+                writer.write(ENCRYPTED_FLAG + encryptionEnabled);
+                writer.write("\n");
                 for (int i = 0; i < tradeList.size(); i++) {
-                    String encryptedLine = encrypt(tradeList.getTrade(i).toStorageString());
-                    writer.write(encryptedLine);
+                    String line = tradeList.getTrade(i).toStorageString();
+                    writer.write(encryptionEnabled ? encrypt(line) : line);
                     writer.write("\n");
                 }
             }
@@ -147,10 +170,27 @@ public class Storage {
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            // Read first line and verify password hash
             String storedHash = reader.readLine();
             if (storedHash == null || !storedHash.equals(passwordHash)) {
                 throw new TradeLogException("Incorrect password or corrupted file.");
+            }
+
+            String secondLine = reader.readLine();
+            boolean fileIsEncrypted;
+            String firstDataLine = null;
+
+            if (secondLine != null && secondLine.startsWith(ENCRYPTED_FLAG)) {
+                fileIsEncrypted = Boolean.parseBoolean(
+                        secondLine.substring(ENCRYPTED_FLAG.length()));
+            } else {
+                // Legacy format: no flag line, all data is encrypted
+                fileIsEncrypted = true;
+                firstDataLine = secondLine;
+            }
+            encryptionEnabled = fileIsEncrypted;
+
+            if (firstDataLine != null && !firstDataLine.trim().isEmpty()) {
+                parseTradeLine(firstDataLine, fileIsEncrypted, tradeList);
             }
 
             String line;
@@ -158,31 +198,35 @@ public class Storage {
                 if (line.trim().isEmpty()) {
                     continue;
                 }
-
-                try {
-                    String decryptedLine = decrypt(line);
-                    String[] parts = decryptedLine.split(" \\| ");
-                    if (parts.length == 8) {
-                        String ticker = parts[0];
-                        String date = parts[1];
-                        String direction = parts[2];
-                        double entryPrice = Double.parseDouble(parts[3]);
-                        double exitPrice = Double.parseDouble(parts[4]);
-                        double stopLossPrice = Double.parseDouble(parts[5]);
-                        String outcome = parts[6];
-                        String strategy = parts[7];
-                        tradeList.addTrade(new Trade(ticker, date, direction,
-                                entryPrice, exitPrice, stopLossPrice, outcome, strategy));
-                    }
-                } catch (Exception e) {
-                    throw new TradeLogException("Failed to decrypt trade data. "
-                            + "The file might be corrupted or incorrect password.");
-                }
+                parseTradeLine(line, fileIsEncrypted, tradeList);
             }
         } catch (IOException e) {
             throw new TradeLogException("Failed to load trades");
         }
 
         return tradeList;
+    }
+
+    private void parseTradeLine(String line, boolean isEncrypted,
+            TradeList tradeList) throws TradeLogException {
+        try {
+            String data = isEncrypted ? decrypt(line) : line;
+            String[] parts = data.split(" \\| ");
+            if (parts.length == 8) {
+                String ticker = parts[0];
+                String date = parts[1];
+                String direction = parts[2];
+                double entryPrice = Double.parseDouble(parts[3]);
+                double exitPrice = Double.parseDouble(parts[4]);
+                double stopLossPrice = Double.parseDouble(parts[5]);
+                String outcome = parts[6];
+                String strategy = parts[7];
+                tradeList.addTrade(new Trade(ticker, date, direction,
+                        entryPrice, exitPrice, stopLossPrice, outcome, strategy));
+            }
+        } catch (Exception e) {
+            throw new TradeLogException("Failed to decrypt trade data. "
+                    + "The file might be corrupted or incorrect password.");
+        }
     }
 }

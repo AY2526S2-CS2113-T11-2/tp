@@ -70,7 +70,7 @@ class UiTest {
         Ui ui = new Ui();
         String output = captureOutput(ui::showWelcome);
         assertTrue(output.contains(
-                "Commands: add, list, edit, delete, filter, compare, summary, undo, exit"));
+                "Commands: add, list, edit, delete, filter, compare, summary, encrypt, undo, exit"));
     }
 
     @Test
