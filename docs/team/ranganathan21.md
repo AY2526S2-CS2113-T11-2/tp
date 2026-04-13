@@ -6,9 +6,9 @@ TradeLog is a desktop application for traders who prefer using a CLI. It allows 
 
 ### Features implemented
 
-1. **List/display workflow and shared UI**: implemented `ListCommand`, the `Command` abstraction, key parts of the `TradeLog` run loop, and the shared `Ui` used for trade display, summaries, undo feedback, and errors. This established the product's common CLI output style and later included bug-fix work around output formatting and run-loop reliability. Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25), [#26](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/26), [#27](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/27), [#129](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/129), [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
-2. **Strategy shortcut support**: implemented canonical parsing and validation for shortcut inputs such as `BB`, `PB`, and `MTR`, and integrated them into `add`, `edit`, `filter`, and related tests. This improved logging speed while keeping stored strategy names normalized for filtering and comparison. Relevant PR: [#44](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/44).
-3. **Strategy comparison analytics**: implemented `compare` using `CompareCommand` and `StrategyStats` to show per-strategy trade count, win rate, average win, average loss, and EV. The implementation uses single-pass aggregation and canonicalized strategy names so variants do not split into separate groups. Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46).
+1. **List/display workflow and shared UI**: implemented `ListCommand`, the `Command` abstraction, key parts of the `TradeLog` run loop, and the shared `Ui` used for trade display, summaries, undo feedback, and errors. This established the product's common CLI output style, centralized formatting logic, and later included bug-fix work around output formatting, startup handling, and run-loop reliability. Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25), [#26](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/26), [#27](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/27), [#129](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/129), [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
+2. **Strategy shortcut support**: implemented canonical parsing and validation for shortcut inputs such as `BB`, `PB`, and `MTR`, and integrated them into `add`, `edit`, `filter`, and related tests. This improved logging speed while keeping stored strategy names normalized for filtering, comparison, and future maintenance. Relevant PR: [#44](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/44).
+3. **Strategy comparison analytics**: implemented `compare` using `CompareCommand` and `StrategyStats` to show per-strategy trade count, win rate, average win, average loss, and EV. The implementation uses single-pass aggregation and canonicalized strategy names so variants do not split into separate groups, and it is supported by targeted tests and documentation. Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46).
 
 ### Code contributed
 
@@ -19,6 +19,7 @@ TradeLog is a desktop application for traders who prefer using a CLI. It allows 
 - **User Guide**: reworked the UG into an AB3-style structure, updated command documentation, and kept the sections for strategy shortcuts, `filter`, `compare`, encryption, and startup/save behavior aligned with the product.
 - **Developer Guide**: documented the UI component, `ListCommand`, the strategy shortcut workflow, the `compare` feature, and the manual testing steps for the implemented features.
 - **Project Portfolio Page**: updated my PPP to reflect the final implemented scope and linked PR history.
+- These updates were aimed at keeping the docs aligned with the actual product instead of planned or outdated behavior, which reduced mismatch bugs during peer testing.
 
 ### Diagrams
 
@@ -28,6 +29,7 @@ Added or updated: `ui-print-trade-list-sequence`, `list-command-sequence`, `list
 
 - Helped maintain consistent CLI output, documentation, and test coverage across the project.
 - Contributed project setup, documentation, release-readiness, and integration work in [#3](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/3), [#30](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/30), [#31](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/31), [#34](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/34), [#36](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/36), [#39](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/39), [#62](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/62), and [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
+- Took part in final bug-fix and verification work to reduce peer-testing issues in the user-facing parts of the app.
 
 ### Review/mentoring contributions
 
