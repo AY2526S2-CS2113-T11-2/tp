@@ -19,11 +19,11 @@ TradeLog is optimized for users who can type quickly and prefer entering command
   - [Filtering trades: `filter`](#filtering-trades-filter)
   - [Comparing strategies: `compare`](#comparing-strategies-compare)
   - [Viewing overall performance: `summary`](#viewing-overall-performance-summary)
+  - [Toggling storage encryption: `encrypt`](#toggling-storage-encryption-encrypt)
   - [Undoing the most recent change: `undo`](#undoing-the-most-recent-change-undo)
   - [Exiting the program: `exit`](#exiting-the-program-exit)
 - [FAQ](#faq)
 - [Command summary](#command-summary)
-- [Planned enhancements](#planned-enhancements)
 
 ## Quick start
 
@@ -74,9 +74,12 @@ When TradeLog starts, it asks for a password before showing the command prompt.
 - If no profile exists yet, the password creates a new profile.
 - If profiles already exist, TradeLog tries to load the profile matching that password.
 - If no existing profile matches, TradeLog asks whether you want to create a new profile.
+- Passwords cannot be blank.
 - Trades are saved automatically when you exit the program.
+- If the input stream ends unexpectedly, TradeLog still saves the current session before shutting down.
 
-Trade data is stored in encrypted profile files inside the `data/` folder.
+Trade data is stored in password-protected profile files inside the `data/` folder.
+Encryption is disabled by default and can be toggled with `encrypt`.
 
 ### Adding a trade: `add`
 
@@ -85,13 +88,13 @@ Adds a trade to the current profile and shows its trade summary.
 Format:
 
 ```text
-add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP o/OUTCOME strat/STRATEGY
+add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP strat/STRATEGY
 ```
 
 Example:
 
 ```text
-add t/AAPL d/2026-03-18 dir/long e/150 x/165 s/140 o/win strat/BB
+add t/AAPL d/2026-03-18 dir/long e/150 x/165 s/140 strat/BB
 ```
 
 Expected output:
@@ -133,8 +136,8 @@ Example output:
 
 ```text
 --------------------------------------------------------------------------------
-1. AAPL | 2026-03-18 | Long | E:150 | TP:165 | SL:140 | win | Breakout
-2. TSLA | 2026-03-19 | Short | E:200 | TP:190 | SL:210 | loss | Pullback
+1. AAPL | 2026-03-18 | Long | E:150 | TP:165 | SL:140 | Win | Breakout
+2. TSLA | 2026-03-19 | Short | E:200 | TP:190 | SL:210 | Loss | Pullback
 --------------------------------------------------------------------------------
 ```
 
@@ -153,7 +156,7 @@ Edits one trade by index. Only the specified fields are changed.
 Format:
 
 ```text
-edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [o/OUTCOME] [strat/STRATEGY]
+edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [strat/STRATEGY]
 ```
 
 Example:
@@ -228,7 +231,7 @@ Example output shape:
 
 ```text
 --------------------------------------------------------------------------------
-2. AAPL | 2026-03-18 | Long | E:150 | TP:165 | SL:140 | win | Breakout
+2. AAPL | 2026-03-18 | Long | E:150 | TP:165 | SL:140 | Win | Breakout
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Overall Performance:
@@ -315,6 +318,25 @@ Note:
 
 - Summary statistics are calculated from each trade's risk-reward ratio.
 
+### Toggling storage encryption: `encrypt`
+
+Enables, disables, or checks whether encryption is active for saved trades.
+
+Format:
+
+```text
+encrypt on
+encrypt off
+encrypt status
+```
+
+Current behavior:
+
+- New profiles start with encryption disabled.
+- `encrypt on` enables AES encryption for future saves.
+- `encrypt off` saves future trades in plaintext.
+- `encrypt status` shows the current save mode.
+
 ### Undoing the most recent change: `undo`
 
 Reverts the most recent add, edit, or delete.
@@ -346,11 +368,15 @@ On exit, TradeLog shows the goodbye banner and then saves the current profile au
 
 **Q: Where is my data stored?**
 
-**A:** In encrypted profile files inside the `data/` folder.
+**A:** In password-protected profile files inside the `data/` folder. New profiles save in plaintext unless you enable encryption.
 
 **Q: Can I have more than one profile?**
 
 **A:** Yes. Using a different password can create a different profile.
+
+**Q: What if my terminal session ends without typing `exit`?**
+
+**A:** TradeLog still attempts to save the current session before shutting down.
 
 **Q: Can I undo multiple steps?**
 
@@ -358,31 +384,16 @@ On exit, TradeLog shows the goodbye banner and then saves the current profile au
 
 ## Command summary
 
-| Action               | Format                                                                                                    |
-|:---------------------|:----------------------------------------------------------------------------------------------------------|
-| Add trade            | `add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP o/OUTCOME strat/STRATEGY`                        |
-| List trades          | `list`                                                                                                    |
-| Edit trade           | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [o/OUTCOME] [strat/STRATEGY]` |
-| Delete trade         | `delete INDEX`                                                                                            |
-| Filter trades        | `filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]`                                                        |
-| Compare strategies   | `compare`                                                                                                 |
-| View overall summary | `summary`                                                                                                 |
-| Undo last change     | `undo`                                                                                                    |
-| Exit                 | `exit`                                                                                                    |
+| Action               | Format                                                                                        |
+|:---------------------|:----------------------------------------------------------------------------------------------|
+| Add trade            | `add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP strat/STRATEGY`                      |
+| List trades          | `list`                                                                                        |
+| Edit trade           | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [strat/STRATEGY]` |
+| Delete trade         | `delete INDEX`                                                                                |
+| Filter trades        | `filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]`                                            |
+| Compare strategies   | `compare`                                                                                     |
+| View overall summary | `summary`                                                                                     |
+| Toggle encryption    | `encrypt on`, `encrypt off`, `encrypt status`                                                 |
+| Undo last change     | `undo`                                                                                        |
+| Exit                 | `exit`                                                                                        |
 
-## Planned enhancements
-
-The following features are not implemented yet:
-
-- Duplicate warning `Coming soon`
-- Daily loss limit `Coming soon`
-- Sorting trades `Coming soon`
-- Streak tracking `Coming soon`
-- Alias support for ticker symbols `Coming soon`
-- Separate backtest/live modes `Coming soon`
-- Psychological tagging `Coming soon`
-- Max drawdown analytics `Coming soon`
-- CSV export `Coming soon`
-- Reflective journaling with screenshots `Coming soon`
-- Pre-trade checklist `Coming soon`
-- Bulk import `Coming soon`

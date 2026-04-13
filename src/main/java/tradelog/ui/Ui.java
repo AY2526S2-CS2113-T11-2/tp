@@ -193,8 +193,8 @@ public class Ui {
         System.out.printf("Win Rate: %.0f%%%n", winRate);
         System.out.printf("Average Win: %.2fR%n", averageWin);
         System.out.printf("Average Loss: %.2fR%n", averageLoss);
-        System.out.printf("Overall EV: %s%.2fR%n", evSign, expectedValue);
-        System.out.printf("Total R: %s%.2fR%n", totalRSign, totalR);
+        System.out.printf("Overall EV: %s%.2fR%n", evSign, Math.abs(expectedValue));
+        System.out.printf("Total R: %s%.2fR%n", totalRSign, Math.abs(totalR));
         showLine();
     }
 
@@ -250,7 +250,7 @@ public class Ui {
         if (scanner.hasNextLine()) {
             return scanner.nextLine();
         }
-        return "";
+        return null;
     }
 
     /**
@@ -264,7 +264,7 @@ public class Ui {
         if (scanner.hasNextLine()) {
             return scanner.nextLine().trim();
         }
-        return "";
+        return null;
     }
 
     /**

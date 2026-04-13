@@ -16,6 +16,7 @@ TR = Trading Range
 DB = Double Bottom
 DT = Double Top
 --------------------------------------------------------------------------------
+Encryption is currently disabled.
 --------------------------------------------------------------------------------
 Trade Summary:
 Ticker: AAPL
@@ -30,30 +31,34 @@ Risk:Reward: +1.00R
 --------------------------------------------------------------------------------
 Trade successfully added.
 --------------------------------------------------------------------------------
-1. AAPL | 2026-02-18 | Long | E:180 | TP:190 | SL:170 | Win | Breakout
---------------------------------------------------------------------------------
-Trade 1 updated successfully.
---------------------------------------------------------------------------------
 Trade Summary:
-Ticker: AAPL
-Date: 2026-02-18
-Direction: Long
-Entry: 180
-Exit: 195
-Stop: 170
-Strategy: Breakout
+Ticker: TSLA
+Date: 2026-02-19
+Direction: Short
+Entry: 400
+Exit: 380
+Stop: 410
+Strategy: Pullback
 
-Risk:Reward: +1.50R
+Risk:Reward: +2.00R
+--------------------------------------------------------------------------------
+Trade successfully added.
+--------------------------------------------------------------------------------
+1. AAPL | 2026-02-18 | Long | E:180 | TP:190 | SL:170 | Win | Breakout
+2. TSLA | 2026-02-19 | Short | E:400 | TP:380 | SL:410 | Win | Pullback
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+1. AAPL | 2026-02-18 | Long | E:180 | TP:190 | SL:170 | Win | Breakout
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Overall Performance:
 
 Total Trades: 1
 Win Rate: 100%
-Average Win: 1.50R
+Average Win: 1.00R
 Average Loss: 0.00R
-Overall EV: +1.50R
-Total R: +1.50R
+Overall EV: +1.00R
+Total R: +1.00R
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Strategy Comparison:
@@ -61,24 +66,62 @@ Strategy Comparison:
 Breakout:
 Trades: 1
 Win Rate: 100%
-Average Win: 1.50R
+Average Win: 1.00R
 Average Loss: 0.00R
-EV: +1.500R
+EV: +1.000R
+
+Pullback:
+Trades: 1
+Win Rate: 100%
+Average Win: 2.00R
+Average Loss: 0.00R
+EV: +2.000R
 
 --------------------------------------------------------------------------------
+Trade 2 updated successfully.
+--------------------------------------------------------------------------------
+Trade Summary:
+Ticker: TSLA
+Date: 2026-02-19
+Direction: Short
+Entry: 400
+Exit: 370
+Stop: 410
+Strategy: Major Trend Reversal
+
+Risk:Reward: +3.00R
+--------------------------------------------------------------------------------
+Most recent change has been undone.
+--------------------------------------------------------------------------------
+Overall Performance:
+
+Total Trades: 2
+Win Rate: 100%
+Average Win: 1.50R
+Average Loss: 0.00R
+Overall EV: +1.50R
+Total R: +3.00R
+--------------------------------------------------------------------------------
+Encryption enabled. Your trades will be encrypted when saved.
+Encryption is currently enabled.
+Encryption disabled. Your trades will be saved in plaintext.
+Encryption is currently disabled.
 --------------------------------------------------------------------------------
 Trade Summary:
 Ticker: AAPL
 Date: 2026-02-18
 Direction: Long
 Entry: 180
-Exit: 195
+Exit: 190
 Stop: 170
 Strategy: Breakout
 
-Risk:Reward: +1.50R
+Risk:Reward: +1.00R
 --------------------------------------------------------------------------------
 Trade successfully deleted.
+--------------------------------------------------------------------------------
+1. TSLA | 2026-02-19 | Short | E:400 | TP:380 | SL:410 | Win | Pullback
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Goodbye! May your profits be high and your losses small.
 --------------------------------------------------------------------------------

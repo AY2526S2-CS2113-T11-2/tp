@@ -22,6 +22,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseStrategy_knownShortcutWithWhitespace_returnsExpandedName() {
+        assertEquals("Breakout", ParserUtil.parseStrategy("  bb  "));
+    }
+
+    @Test
     public void parseStrategy_unknownStrategy_throwsTradeLogException() {
         assertThrows(TradeLogException.class, () -> ParserUtil.parseStrategy("Custom Strategy"));
     }
@@ -35,6 +40,13 @@ public class ParserUtilTest {
     @Test
     public void canonicalizeStoredStrategy_unknownStrategy_returnsTrimmedInput() {
         assertEquals("Custom Strategy", ParserUtil.canonicalizeStoredStrategy("  Custom Strategy  "));
+    }
+
+    @Test
+    public void canonicalizeStoredStrategy_knownValues_returnsCanonicalName() {
+        assertEquals("Breakout", ParserUtil.canonicalizeStoredStrategy(" bb "));
+        assertEquals("Major Trend Reversal",
+                ParserUtil.canonicalizeStoredStrategy(" major   trend reversal "));
     }
 
     @Test

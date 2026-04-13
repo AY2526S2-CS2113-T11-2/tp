@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UiTest {
@@ -17,9 +18,12 @@ class UiTest {
     private String captureOutput(Runnable action) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
-        System.setOut(new PrintStream(buffer));
-        action.run();
-        System.setOut(original);
+        try {
+            System.setOut(new PrintStream(buffer));
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
         return buffer.toString();
     }
 
@@ -55,7 +59,7 @@ class UiTest {
 
         assertTrue(output.contains("2."));
         assertTrue(output.contains("TSLA"));
-        assertTrue(!output.contains("1. AAPL"));
+        assertFalse(output.contains("1. AAPL"));
     }
 
     @Test
@@ -159,5 +163,33 @@ class UiTest {
         assertTrue(output.contains("Average Win: 2.00R"));
         assertTrue(output.contains("Average Loss: 1.00R"));
         assertTrue(output.contains("EV: +0.500R"));
+    }
+
+    @Test
+    public void showSummary_negativeValues_formatsWithSingleMinusSign() {
+        Ui ui = new Ui();
+
+        String output = captureOutput(() -> ui.showSummary(2, 0.0, 0.0,
+                1.25, -1.25, -2.5));
+
+        assertTrue(output.contains("Overall EV: -1.25R"));
+        assertTrue(output.contains("Total R: -2.50R"));
+        assertFalse(output.contains("--1.25R"));
+        assertFalse(output.contains("--2.50R"));
+    }
+
+    @Test
+    public void showStrategyComparison_negativeEv_formatsWithSingleMinusSign() {
+        Ui ui = new Ui();
+        Map<String, StrategyStats> strategyComparison = new LinkedHashMap<>();
+        StrategyStats breakoutStats = new StrategyStats();
+        breakoutStats.addTrade(-1.0);
+        breakoutStats.addTrade(-0.5);
+        strategyComparison.put("Breakout", breakoutStats);
+
+        String output = captureOutput(() -> ui.showStrategyComparison(strategyComparison));
+
+        assertTrue(output.contains("EV: -0.750R"));
+        assertFalse(output.contains("--0.750R"));
     }
 }

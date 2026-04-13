@@ -1,6 +1,6 @@
 # TradeLog
 
-TradeLog is a desktop application for traders who prefer using a Command Line Interface (CLI). It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in encrypted local profiles.
+TradeLog is a desktop application for traders who prefer using a Command Line Interface (CLI). It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in password-protected local profiles.
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ java -jar TradeLog.jar
 - Compare performance across strategies
 - Undo the most recent add, edit, or delete
 - Use supported strategy shortcuts such as `BB`, `PB`, and `MTR`, with canonical strategy normalization
-- Store data in encrypted files under the `data/` directory
+- Store data under the `data/` directory, with optional encryption controlled by the user
 
 ## Build and Test
 

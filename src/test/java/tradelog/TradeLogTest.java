@@ -5,7 +5,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,9 +20,12 @@ class TradeLogTest {
     private String captureOutput(Runnable action) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
-        System.setOut(new PrintStream(buffer));
-        action.run();
-        System.setOut(original);
+        try {
+            System.setOut(new PrintStream(buffer));
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
         return buffer.toString();
     }
 
@@ -78,5 +83,17 @@ class TradeLogTest {
         System.setIn(new ByteArrayInputStream("testpassword\n\nexit\n".getBytes()));
         String output = captureOutput(() -> new TradeLog(tempDir.toString(), "trades").run());
         assertTrue(output.contains("Error:"));
+    }
+
+    @Test
+    public void run_endOfInputWithoutExit_savesTradesBeforeShutdown() throws IOException {
+        String addInput = "testpassword\nadd t/AAPL d/2026-02-18 dir/long"
+                + " e/180 x/190 s/170 strat/Breakout\n";
+        System.setIn(new ByteArrayInputStream(addInput.getBytes()));
+
+        captureOutput(() -> new TradeLog(tempDir.toString(), "trades").run());
+
+        String savedContent = Files.readString(tempDir.resolve("trades.txt"));
+        assertTrue(savedContent.contains("AAPL"));
     }
 }

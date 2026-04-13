@@ -37,4 +37,18 @@ public class StrategyStatsTest {
         assertEquals(0.0, strategyStats.getAverageLoss(), 0.001);
         assertEquals(0.0, strategyStats.getExpectedValue(), 0.001);
     }
+
+    @Test
+    public void addTrade_onlyLosses_calculatesLossMetricsCorrectly() {
+        StrategyStats strategyStats = new StrategyStats();
+
+        strategyStats.addTrade(-1.0);
+        strategyStats.addTrade(-2.0);
+
+        assertEquals(2, strategyStats.getTradeCount());
+        assertEquals(0.0, strategyStats.getWinRate(), 0.001);
+        assertEquals(0.0, strategyStats.getAverageWin(), 0.001);
+        assertEquals(1.5, strategyStats.getAverageLoss(), 0.001);
+        assertEquals(-1.5, strategyStats.getExpectedValue(), 0.001);
+    }
 }

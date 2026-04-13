@@ -17,7 +17,7 @@ TradeLog follows a modular CLI architecture, separating concerns into four main 
 
 * **Logic**: Handles prefix-based command parsing (e.g., `t/`, `d/`) and execution flow for commands.
 * **Model**: Encapsulates the `Trade` entity and the `TradeList` collection, handling in-memory trade data and `R`-multiple calculations.
-* **Storage**: Handles encrypted persistence of profile data in the `data/` directory. Trades are loaded at startup and saved when the application exits.
+* **Storage**: Handles persistence of profile data in the `data/` directory. New profiles save in plaintext by default, and the `encrypt` command can toggle the save mode.
 * **UI**: Manages formatted console output and user interaction.
 
 The diagram below shows the high-level flow of a user command through the system:
@@ -145,7 +145,7 @@ The central model classes are `Trade` and `TradeList`. `Trade` represents a sing
 
 ##### Component-Level Description
 
-`Trade` stores the fields captured from user input, including ticker, date, direction, entry price, exit price, stop-loss price, outcome, and strategy. It also exposes derived values such as the trade's `R`-multiple, which are used by analytics features.
+`Trade` stores the fields captured from user input, including ticker, date, direction, entry price, exit price, stop-loss price, and strategy. It also exposes derived values such as the trade's `R`-multiple and derived outcome, which are used by analytics features.
 
 `TradeList` wraps the current list of `Trade` objects and provides collection operations such as adding, deleting, retrieving, and iterating over trades. This keeps list-management behavior centralized and allows command classes to operate on a consistent abstraction.
 
@@ -159,15 +159,15 @@ Separating `Trade` from `TradeList` keeps entity-level behavior and collection-l
 
 ##### Architecture-Level Description
 
-The storage layer is responsible for persistence of trade data across application runs. In the current version, it supports encrypted local profile files stored under the `data/` directory, with profile resolution handled at startup before the main command loop begins.
+The storage layer is responsible for persistence of trade data across application runs. In the current version, it supports password-protected local profile files stored under the `data/` directory, with encryption disabled by default for new profiles and profile resolution handled at startup before the main command loop begins.
 
-This layer is centered around `Storage`, which reads and writes encrypted trade data, and `ProfileManager`, which determines which profile file to use based on the password entered by the user.
+This layer is centered around `Storage`, which reads and writes trade data with optional AES encryption, and `ProfileManager`, which determines which profile file to use based on the password entered by the user.
 
 ##### Component-Level Description
 
-`Storage` handles serialization, encryption, decryption, and file access. It operates on `TradeList` data and does not depend on parsing or command classes.
+`Storage` handles serialization, encryption, decryption, and file access. New `Storage` instances start with encryption disabled, but the `encrypt` command can turn it on or off before saving. It operates on `TradeList` data and does not depend on parsing or command classes.
 
-`ProfileManager` coordinates startup profile selection. It prompts for a password through `Ui`, attempts to match that password to an existing encrypted profile, and creates a new profile when required.
+`ProfileManager` coordinates startup profile selection. It prompts for a password through `Ui`, rejects blank passwords, attempts to match that password to an existing profile, and creates a new profile when required.
 
 ##### Design Rationale
 
@@ -363,7 +363,7 @@ filter strat/BB                      → trades matching the canonical Breakout 
 ##### Design Rationale
 
 **Why delegate the summary to `SummaryCommand` rather than duplicating the logic?**
-`SummaryCommand` already computes win rate, average win/loss, EV, and total R from a `TradeList`. Delegating avoids duplication and guarantees that the filtered-subset metrics are always consistent with the full-list metrics produced by `summary`.
+`SummaryCommand` already computes win rate, average win/loss, EV, and total R from a `TradeList`. Delegating avoids duplication and guarantees that the filtered-subset metrics stay consistent with the full-list metrics produced by `summary`.
 
 **Why use original 1-based indices (from the full list) when displaying filtered results?**
 Displaying the original index allows the user to immediately act on a filtered result — for example, using `edit 3` or `delete 3` on a trade found via `filter` without needing to re-run `list` to look up the index.
@@ -373,7 +373,7 @@ Displaying the original index allows the user to immediately act on a filtered r
 
 **Alternatives considered:**
 - **Separate `filter-partial` command**: Rejected. Having `-p` as an inline flag keeps the command surface small and the user does not need to remember two separate command names.
-- **Chained filter pipeline (filter feeds into another filter)**: Considered as a future feature. The current AND-of-criteria design handles the most common cases; a pipeline could be introduced if users need OR logic.
+- **Chained filter pipeline (filter feeds into another filter)**: Rejected because the current AND-of-criteria design already handles the implemented use cases while keeping the command model simple.
 
 ---
 
@@ -529,7 +529,7 @@ The `execute` method of `CompareCommand` performs the following steps:
 ##### Design Rationale
 
 **Why a `LinkedHashMap` and not sorting alphabetically?**
-Traders tend to think of their strategies in the order they used them, not alphabetically. Preserving insertion order makes the output feel natural. A future `compare sort/alpha` variant could sort alphabetically if desired.
+Traders tend to think of their strategies in the order they used them, not alphabetically. Preserving insertion order makes the output feel natural.
 
 **Why not add grouping logic to `TradeList`?**
 `TradeList` is a model class that should only manage the collection - add, delete, get, and size. Adding grouping logic there would violate single responsibility. `CompareCommand` is the correct place for this aggregation, consistent with how `SummaryCommand` handles its own calculations.
@@ -548,14 +548,15 @@ Traders tend to think of their strategies in the order they used them, not alpha
 
 ##### Architecture-Level Description
 
-`Storage` is the sole class responsible for reading and writing trade data to disk. All data is encrypted at rest using **AES-128** symmetric encryption. The encryption key is derived from the user's password via a **SHA-256** hash, with only the first 16 bytes used to form the AES key. No plaintext trade records are ever written to the file.
+`Storage` is the sole class responsible for reading and writing trade data to disk. New profiles save in plaintext by default, but the `encrypt` command can switch future saves to or from **AES-128** encrypted mode. The encryption key is derived from the user's password via a **SHA-256** hash, with only the first 16 bytes used to form the AES key.
 
 The file format is:
 
 ```
 <SHA-256 password hash (Base64)>
-<AES-encrypted trade line 1 (Base64)>
-<AES-encrypted trade line 2 (Base64)>
+<ENCRYPTED:true|false>
+<trade line 1, encrypted Base64 or plaintext depending on flag>
+<trade line 2, encrypted Base64 or plaintext depending on flag>
 ...
 ```
 
@@ -565,14 +566,14 @@ The first line is the Base64-encoded SHA-256 hash of the password. This is used 
 
 ##### Component-Level Description
 
-| Method                  | Responsibility                                                                                                                                                       |
-|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `setPassword(String)`   | Derives the AES key and stores the password hash. Must be called before `saveTrades` or `loadTrades`.                                                                |
-| `saveTrades(TradeList)` | Creates parent directories if needed, writes the password hash on line 1, then writes one AES-encrypted, Base64-encoded trade string per line.                       |
-| `loadTrades()`          | Reads line 1 and compares it to `passwordHash`. If it matches, decrypts each subsequent line, parses the 8-field pipe-delimited format, and populates a `TradeList`. |
-| `exists()`              | Returns whether the underlying file is present on disk. Used by `ProfileManager` during startup.                                                                     |
+| Method                  | Responsibility                                                                                                                                                                                                       |
+|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `setPassword(String)`   | Derives the AES key and stores the password hash. Must be called before `saveTrades` or `loadTrades`.                                                                                                                |
+| `saveTrades(TradeList)` | Creates parent directories if needed, writes the password hash on line 1, writes the encryption-status flag on line 2, then writes one trade string per line in encrypted or plaintext form.                         |
+| `loadTrades()`          | Reads line 1 and compares it to `passwordHash`. If it matches, reads the encryption-status flag, then decrypts or reads each subsequent line, parses the 7-field pipe-delimited format, and populates a `TradeList`. |
+| `exists()`              | Returns whether the underlying file is present on disk. Used by `ProfileManager` during startup.                                                                                                                     |
 
-The encryption and decryption use Java's `javax.crypto.Cipher` in `AES/ECB` mode (the default single-block `"AES"` transformation). Each trade's `toStorageString()` output (pipe-delimited) is individually encrypted and Base64-encoded before being written as a line.
+The encryption and decryption use Java's `javax.crypto.Cipher` in `AES/ECB` mode (the default single-block `"AES"` transformation). When encryption is enabled, each trade's `toStorageString()` output (pipe-delimited) is individually encrypted and Base64-encoded before being written as a line.
 
 ##### Sequence Diagram — `saveTrades` on exit
 ![Save Trades on exit Sequence Diagram](diagrams/save-trades-on-exit-diagram.png)
@@ -586,10 +587,10 @@ The encryption and decryption use Java's `javax.crypto.Cipher` in `AES/ECB` mode
 The password hash acts as both the AES key seed and the per-file identity marker (the first line of each profile file). This allows `ProfileManager` to determine which file belongs to which user without storing any plaintext credential.
 
 **Why AES-128 and not AES-256?**
-AES-128 (16-byte key) is sufficient for protecting trade records from casual access. Moving to AES-256 would require only changing the `Arrays.copyOf` length from 16 to 32; the rest of the implementation is unchanged.
+AES-128 (16-byte key) is sufficient for protecting trade records from casual access in the current implementation.
 
 **Why encrypt each trade line independently rather than the whole file?**
-Individual-line encryption makes the format robust: a single corrupted line affects only that trade, not the rest of the file. It also maps naturally to the line-by-line read loop in `loadTrades`.
+Individual-line encryption makes the format robust: a single corrupted line affects only that trade, not the rest of the file. It also maps naturally to the line-by-line read loop in `loadTrades` when encryption is enabled.
 
 **Alternatives considered:**
 - **Storing plaintext**: Rejected. A trader's position sizes, entry/exit prices, and strategies are commercially sensitive. Plaintext storage would expose this data to anyone with filesystem access.
@@ -624,6 +625,8 @@ The constructor `ProfileManager(String baseDir, String baseName, Ui ui)` runs th
 2. **Prompt for a password** via `ui.readPassword(prompt)`:
    - If no files exist: `"No profiles found. Create a new password:"`
    - If files exist: `"Enter password to load your profile (or create a new one):"`
+   - If the input is blank: show an error and prompt again.
+   - If the input stream closes: abort startup rather than looping indefinitely.
 3. **Branch on file existence:**
    - **No files exist** → call `createNewProfile(...)` immediately with message `"No existing profile found. Creating new profile..."` and exit.
    - **Files exist** → call `tryLoadExistingProfile(...)`:
@@ -642,6 +645,8 @@ After the constructor completes, `getActiveStorage()` and `getLoadedTrades()` pa
 | `findNextAvailablePath(String, String)`                | Returns the first `<baseDir>/<baseName>_N.txt` path (or `<baseName>.txt` for index 0) that does not yet exist on disk.                      |
 | `getActiveStorage()`                                   | Returns the `Storage` instance resolved during construction.                                                                                |
 | `getLoadedTrades()`                                    | Returns the `TradeList` loaded (or newly created) during construction.                                                                      |
+
+At the application level, `TradeLog.run()` saves in a `finally` block and also registers a shutdown hook. This ensures normal exits, end-of-input termination, and JVM shutdown events still attempt to persist the current trade list once.
 
 ##### Sequence Diagram — startup with an existing matching profile
 ![Existing Matching Profile Diagram](diagrams/existing-matching-profile-diagram.png)
@@ -665,80 +670,32 @@ Silently creating a new profile on a password mismatch would produce spurious em
 
 ---
 
-## Appendix A: Product Scope
+## Appendix A: Non-Functional Requirements
 
-### A.1 Target User Profile
-
-**Daniel** is a proprietary trader who works independently and relies heavily on data to refine his trading strategies. He spends most of his day analysing charts and executing trades, and prefers fast, keyboard-based tools over graphical interfaces. He values efficiency, accuracy, and structured data analysis to improve his trading performance.
-
-### A.2 Value Proposition
-
-Provides a CLI-based, systematic way to log trades and review trading performance more quickly than maintaining the same records manually in spreadsheets. The current product focuses on trade journaling, `R`-multiple calculations, summary metrics, strategy comparison, and encrypted local storage.
-
-### A.3 Scope
-
-TradeLog helps financial trading professionals systematically log, manage, and analyze their trading data through a fast CLI-based system. In the current version, it enables users to:
-
-* Log, edit, delete, and review trades efficiently.
-* Calculate key performance metrics such as win rate, average win/loss, expected value (EV), and total `R`.
-* Filter trades by ticker, strategy, and date.
-* Compare strategy performance in one view.
-* Store trade data locally in encrypted password-protected profiles.
+1. **Platform Independence**: Must run on any OS with Java 17 or higher installed.
+2. **Performance**: Summary and comparison calculations should complete within 100 ms for up to 2,000 trades on a typical modern desktop.
+3. **Data Persistence**: Trade data should be stored locally in profile files and saved successfully when the application exits normally.
+4. **Offline Capability**: All trade data must be stored locally without requiring cloud connectivity.
 
 ---
 
 ## Appendix B: User Stories
 
-| Version  | As a ...                 | I want to ...                                                  | So that I can ...                                         |
-|:---------|:-------------------------|:---------------------------------------------------------------|:----------------------------------------------------------|
-| **v1.0** | trader                   | log my trading data                                            | review and analyze my trades later                        |
-| **v1.0** | trader                   | edit previously logged trades                                  | correct mistakes in my data                               |
-| **v1.0** | trader                   | delete an incorrectly entered trade                            | keep my records accurate                                  |
-| **v1.0** | trader                   | view a summary of my trades                                    | understand overall performance quickly                    |
-| **v2.0** | trader                   | filter my trades by ticker, strategy, or date                  | review a specific subset of my trades                     |
-| **v2.0** | power user               | use shortcut codes for strategy names (e.g., `BB`, `PB`)       | log trades faster                                         |
-| **v2.0** | trader                   | compare performance across strategies in one view              | identify which strategy performs better                   |
-| **v2.0** | cautious trader          | undo my most recent add, edit, or delete                       | recover quickly from an accidental change                 |
-| **v2.0** | privacy-conscious trader | protect my trade records with password-based encrypted storage | keep sensitive trading data private                       |
-| **v2.1** | trader                   | Save trading systems                                           | I can easily test them on different datasets              |
-| **v2.1** | trader                   | Switch between testing mode and live trading mode              | I can separate live trades from backtest trades           |
-| **v2.1** | trader                   | Automatically convert and export my data to CSV                | Better review my performance and use other tools          |
-| **v2.1** | trader                   | Set a Daily Loss Limit that warns me                           | Prevents me from taking unnecessarily large risk          |
-| **v2.1** | trader                   | sort trades by profit or loss                                  | I can quickly identify my biggest wins and losses         |
-| **v2.1** | trader                   | see my current win or loss streak                              | I remain aware of potential overconfidence or tilt        |
-| **v2.1** | careless trader          | be warned if I enter a duplicate record                        | I don't accidentally double-count the same fill           |
-| **v2.1** | expert trader            | set short aliases for long tickers                             | I don't type dots and hyphens hundreds of times           |
-| **v2.1** | trader                   | see tickers I've looked up but didn't trade                    | So that I can quickly enter them if I circle back         |
-| **v2.1** | trader                   | mark a ticker as "watched but not taken"                       | Remember which setups I passed on during review           |
-| **v2.1** | trader                   | tag each trade with my emotional state                         | I can identify psychological patterns                     |
-| **v2.1** | trader                   | view a summary over a selected date range                      | I can analyze short-term results                          |
-| **v2.1** | trader                   | view my win rate for a specific strategy                       | I can assess its consistency                              |
-| **v2.1** | trader                   | calculate average risk per trade                               | I can monitor my risk management discipline               |
-| **v2.1** | trader                   | complete a pre-trade checklist before entry                    | I follow my trading plan consistently                     |
-| **v2.1** | trader                   | view multiple strategies side-by-side                          | Objectively compare their performance                     |
-| **v2.1** | trader                   | automatically calculate maximum drawdown                       | I understand my worst-case risk exposure                  |
-| **v2.1** | trader                   | export trades from a specific date range to CSV                | Share selected periods with my mentor or accountant       |
-| **v2.1** | trader                   | review a summary and confirm before saving                     | So that I catch typos before they enter my records        |
-| **v2.1** | inexperienced trader     | see how many trades I've taken today                           | So that I know if I'm overtrading                         |
-| **v2.1** | trader                   | receive an alert if win rate drops below threshold             | I can review and adjust my strategy promptly              |
-| **v2.1** | trader                   | write reflections for each trade                               | I can improve my decision-making process                  |
-| **v2.1** | trader                   | filter and analyze trades by time of day                       | I can identify when I perform best                        |
-| **v2.1** | trader                   | Bulk import historical trades                                  | I can test my trading systems on other datasets           |
-| **v2.1** | trader                   | attach a chart screenshot to each trade                        | I can visually review my entry and exit decisions         |
-| **v2.1** | trader                   | see my total capital currently at risk                         | I avoid overexposure                                      |
+| Version  | As a ...                 | I want to ...                                                                | So that I can ...                         |
+|:---------|:-------------------------|:-----------------------------------------------------------------------------|:------------------------------------------|
+| **v1.0** | trader                   | log my trading data                                                          | review and analyze my trades later        |
+| **v1.0** | trader                   | edit previously logged trades                                                | correct mistakes in my data               |
+| **v1.0** | trader                   | delete an incorrectly entered trade                                          | keep my records accurate                  |
+| **v1.0** | trader                   | view a summary of my trades                                                  | understand overall performance quickly    |
+| **v2.0** | trader                   | filter my trades by ticker, strategy, or date                                | review a specific subset of my trades     |
+| **v2.0** | power user               | use shortcut codes for strategy names (e.g., `BB`, `PB`)                     | log trades faster                         |
+| **v2.0** | trader                   | compare performance across strategies in one view                            | identify which strategy performs better   |
+| **v2.0** | cautious trader          | undo my most recent add, edit, or delete                                     | recover quickly from an accidental change |
+| **v2.0** | privacy-conscious trader | protect my trade records with password-based storage and optional encryption | keep sensitive trading data private       |
 
 ---
 
-## Appendix C: Non-Functional Requirements
-
-1. **Platform Independence**: Must run on any OS with Java 17 or higher installed.
-2. **Performance**: Summary and comparison calculations should complete within 100 ms for up to 2,000 trades on a typical modern desktop.
-3. **Data Persistence**: Trade data should be stored locally in encrypted profile files and saved successfully when the application exits normally.
-4. **Offline Capability**: All trade data must be stored locally without requiring cloud connectivity.
-
----
-
-## Appendix D: Glossary
+## Appendix C: Glossary
 
 * **Ticker**: Unique symbol representing a traded asset (e.g., AAPL).
 * **R:R (Risk:Reward)**: The ratio of potential profit to potential loss.
@@ -748,19 +705,20 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 
 ---
 
-## Appendix E: Instructions for Manual Testing
+## Appendix D: Instructions for Manual Testing
 
-### E.1 Initial Launch
+### D.1 Initial Launch
 
 1. Ensure the `data/` folder does not contain any existing profile files.
 2. Run `java -jar TradeLog.jar`.
 3. When prompted with `No profiles found. Create a new password:`, enter a new password.
 4. Verify that the application starts successfully and displays the welcome banner, command list, and supported strategy shortcuts.
-5. Exit the application and verify that a new encrypted profile file is created in `data/`.
+5. Exit the application and verify that a new profile file is created in `data/`.
+6. Repeat the launch with a blank password and verify that TradeLog rejects it with an error instead of creating a profile.
 
-### E.2 Testing CRUD (v1.0)
+### D.2 Testing CRUD
 
-1. Run: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 o/win strat/Breakout`
+1. Run: `add t/TSLA d/2026-03-18 dir/long e/200 x/220 s/190 strat/Breakout`
 2. Verify that the trade summary is printed and `Trade successfully added.` is shown.
 3. Run: `list`
 4. Verify that the trade appears as item `1`.
@@ -773,11 +731,11 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 11. Run: `list`
 12. Verify that the list is now empty.
 
-### E.3 Testing v2.0 Features
+### D.3 Testing Current Features
 
-1. Run: `add t/AAPL d/2026-03-18 dir/long e/150 x/165 s/140 o/win strat/BB`
+1. Run: `add t/AAPL d/2026-03-18 dir/long e/150 x/165 s/140 strat/BB`
 2. Verify that the trade summary is printed and the strategy is shown as `Breakout`, not `BB`.
-3. Run: `add t/TSLA d/2026-03-19 dir/short e/200 x/190 s/210 o/loss strat/PB`
+3. Run: `add t/TSLA d/2026-03-19 dir/short e/200 x/190 s/210 strat/PB`
 4. Verify that the second trade is added successfully and the strategy is shown as `Pullback`.
 5. Run: `filter strat/Breakout`
 6. Verify that only the `Breakout` trade is shown and that a filtered summary is printed below it.
@@ -785,7 +743,7 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 8. Verify that the same `Breakout` trade is matched using partial ticker matching.
 9. Run: `compare`
 10. Verify that `Breakout` and `Pullback` appear as separate strategy blocks with their own trade counts and metrics.
-11. Run: `add t/MSFT d/2026-03-20 dir/long e/100 x/120 s/90 o/win strat/breakout`
+11. Run: `add t/MSFT d/2026-03-20 dir/long e/100 x/120 s/90 strat/breakout`
 12. Verify that the added trade is stored and displayed as `Breakout`.
 13. Run: `compare`
 14. Verify that the lowercase input is grouped under the same `Breakout` block rather than appearing as a separate strategy.
@@ -795,6 +753,8 @@ TradeLog helps financial trading professionals systematically log, manage, and a
 18. Verify that the third trade is no longer present.
 19. Run: `undo` again.
 20. Verify that the application reports there is no action to undo.
+21. Run TradeLog, add a trade, then end the input stream without typing `exit`.
+22. Verify that the trade is still present on the next launch.
 
 
 

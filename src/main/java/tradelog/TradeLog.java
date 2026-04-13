@@ -8,14 +8,20 @@ import tradelog.storage.Storage;
 import tradelog.storage.ProfileManager;
 import tradelog.ui.Ui;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Main entry point for the TradeLog application.
  */
 public class TradeLog {
+    private static final Logger logger = Logger.getLogger(TradeLog.class.getName());
 
     private final TradeList tradeList;
     private final Ui ui;
     private final Storage storage;
+    private final AtomicBoolean hasSavedTrades = new AtomicBoolean(false);
 
     /**
      * Constructs a TradeLog instance, prompting the user for a password to find or
@@ -29,35 +35,59 @@ public class TradeLog {
         ProfileManager profileManager = new ProfileManager(baseDirectory, baseFileName, ui);
         storage = profileManager.getActiveStorage();
         tradeList = profileManager.getLoadedTrades();
+        registerShutdownHook();
     }
 
     /** Starts the main input loop. */
     public void run() {
-        ui.showWelcome();
-        String input;
-        while ((input = ui.readCommand()) != null) {
-            if (input.isEmpty()) {
-                ui.showError("Command cannot be empty.");
-                continue;
-            }
-            try {
-                Command command = Parser.parseCommand(input);
-                command.execute(tradeList, ui, storage);
-                if (command.isExit()) {
-                    break;
+        try {
+            ui.showWelcome();
+            String input;
+            while ((input = ui.readCommand()) != null) {
+                if (input.isEmpty()) {
+                    ui.showError("Command cannot be empty.");
+                    continue;
                 }
-            } catch (TradeLogException e) {
+                try {
+                    Command command = Parser.parseCommand(input);
+                    command.execute(tradeList, ui, storage);
+                    if (command.isExit()) {
+                        break;
+                    }
+                } catch (TradeLogException e) {
+                    ui.showError(e.getMessage());
+                } catch (RuntimeException e) {
+                    logger.log(Level.SEVERE, "Unexpected error while executing command.", e);
+                    ui.showError("Unexpected internal error. Trades will still be saved.");
+                }
+            }
+        } finally {
+            saveTradesIfNeeded(true);
+            ui.closeScanner();
+        }
+    }
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(
+                () -> saveTradesIfNeeded(false), "tradelog-save-on-shutdown"));
+    }
+
+    private void saveTradesIfNeeded(boolean shouldNotifyUser) {
+        if (!hasSavedTrades.compareAndSet(false, true)) {
+            return;
+        }
+
+        try {
+            storage.saveTrades(tradeList);
+            if (shouldNotifyUser) {
+                ui.showMessage("Trades saved. Goodbye!");
+            }
+        } catch (TradeLogException e) {
+            logger.log(Level.SEVERE, "Failed to save trades during shutdown.", e);
+            if (shouldNotifyUser) {
                 ui.showError(e.getMessage());
             }
         }
-        
-        try {
-            storage.saveTrades(tradeList);
-            ui.showMessage("Trades saved. Goodbye!");
-        } catch (TradeLogException e) {
-            ui.showError(e.getMessage());
-        }
-        ui.closeScanner();
     }
 
     /**
@@ -72,6 +102,10 @@ public class TradeLog {
         } catch (Exception e) {
             // fall back to default logging if config fails
         }
-        new TradeLog("./data", "trades").run();
+        try {
+            new TradeLog("./data", "trades").run();
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

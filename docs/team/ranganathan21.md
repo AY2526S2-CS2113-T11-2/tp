@@ -2,7 +2,7 @@
 
 ## Project: TradeLog
 
-TradeLog is a desktop application for traders who prefer using a CLI. It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in encrypted local profiles.
+TradeLog is a desktop application for traders who prefer using a CLI. It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in password-protected local profiles.
 
 Given below are my contributions to the project.
 
@@ -15,7 +15,7 @@ What it does: provides the `list` command and the full shared UI layer used to p
 Justification: This was foundational to the product because nearly all user-facing features depend on clear, consistent output and a stable application flow.
 
 Highlights: I implemented `ListCommand`, the `Command` abstraction, key parts of the `TradeLog` run loop, and the `Ui` class. This work also included defensive assertions, logging, and test coverage for `Ui`, `ListCommand`, and related command behavior.
-Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25)
+Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25), [#26](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/26), [#27](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/27), [#129](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/129), [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136)
 
 2. Added strategy shortcut support.
 
@@ -46,7 +46,10 @@ Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46)
 - Reworked the User Guide into an AB3-style structure.
 - Documented the current command format and feature set more precisely.
 - Updated the sections for strategy shortcuts, `filter`, and `compare`.
-- Marked unimplemented features clearly as `Coming soon`.
+- Removed outdated references to unimplemented features so the guide matches the current product.
+- Updated the docs after the `/o` input parameter was removed.
+- Corrected the documentation to reflect that encryption is opt-in rather than enabled by default.
+- Updated the docs to reflect the current startup and save behavior, including blank-password rejection and save-on-session-end handling.
 
 #### Developer Guide:
 
@@ -72,10 +75,11 @@ Added or updated the following UML diagrams:
 - Helped maintain consistent CLI output and command flow across user-facing features.
 - Helped align the UG and DG with the implemented behavior as the product evolved.
 - Contributed to test coverage for both unit tests and text UI regression tests.
-- Contributed documentation and release-readiness updates in [#30](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/30), [#34](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/34), [#36](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/36), [#39](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/39) and [#62](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/62).
+- Contributed documentation and release-readiness updates in [#30](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/30), [#31](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/31), [#34](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/34), [#36](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/36), [#39](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/39), [#62](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/62) and [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
+- Contributed early project setup and team website work in [#3](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/3).
 
 ### Review/mentoring contributions
 
 - Reviewed teammates' changes during integration and helped catch behavior-documentation mismatches.
 - Helped refine examples, manual test steps, and feature descriptions so they matched the actual implementation more closely.
-- Reviewed and/or approved pull requests such as [#11](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/11), [#16](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/16), [#17](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/17), [#21](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/21), [#28](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/28), [#32](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/32), [#35](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/35), [#43](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/43), [#59](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/59), and [#60](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/60).
+- Reviewed and/or approved pull requests such as [#11](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/11), [#16](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/16), [#17](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/17), [#21](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/21), [#28](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/28), [#32](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/32), [#35](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/35), [#43](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/43), [#59](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/59), [#60](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/60), [#77](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/77), [#132](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/132), and [#134](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/134).

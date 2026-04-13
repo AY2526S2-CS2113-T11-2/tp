@@ -17,9 +17,12 @@ class ListCommandTest {
     private String captureOutput(Runnable action) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
-        System.setOut(new PrintStream(buffer));
-        action.run();
-        System.setOut(original);
+        try {
+            System.setOut(new PrintStream(buffer));
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
         return buffer.toString();
     }
 

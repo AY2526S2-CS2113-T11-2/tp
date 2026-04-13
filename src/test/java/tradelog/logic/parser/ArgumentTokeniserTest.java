@@ -65,11 +65,11 @@ public class ArgumentTokeniserTest {
     @Test
     public void tokenise_unknownPrefix_throwsTradeLogException() {
         String[] prefixes = {"t/", "e/", "x/"};
-        String input = "t/AAPL e/150.5 x/160.0 o/win";
+        String input = "t/AAPL e/150.5 x/160.0 r/2";
 
         TradeLogException exception = assertThrows(TradeLogException.class,
                 () -> ArgumentTokeniser.tokenise(input, prefixes));
-        assertTrue(exception.getMessage().contains("Unrecognised prefix: o/"));
+        assertTrue(exception.getMessage().contains("Unrecognised prefix: r/"));
     }
 
     @Test
