@@ -50,7 +50,6 @@ public class EditCommandTest {
         assertEquals(entry, current.getEntryPrice());
         assertEquals(exit, current.getExitPrice());
         assertEquals(stop, current.getStopLossPrice());
-        assertEquals(outcome, current.getOutcome());
         assertEquals(strat, current.getStrategy());
     }
 
@@ -66,7 +65,8 @@ public class EditCommandTest {
     @Test
     public void execute_editSecondTrade_success() throws TradeLogException {
         String newTicker = "MSFT";
-        Trade secondTrade = new Trade("TSLA", "2024-01-01", "Short", 250.0, 230.0, 260.0, "WIN", "Swing");
+        Trade secondTrade = new Trade("TSLA", "2024-01-01", "Short",
+                250.0, 230.0, 260.0, "Pullback");
         tradeList.addTrade(secondTrade);
 
         EditCommand command = new EditCommand("2 t/" + newTicker);
@@ -76,7 +76,7 @@ public class EditCommandTest {
                 INIT_EXIT, INIT_STOP, INIT_STRAT);
 
         assertTradeUnchanged(1, newTicker, "2024-01-01", "Short", 250.0,
-                230.0, 260.0, "WIN", "Swing");
+                230.0, 260.0, "Pullback");
     }
 
     @Test

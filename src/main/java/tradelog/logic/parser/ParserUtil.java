@@ -229,28 +229,13 @@ public class ParserUtil {
      */
     public static void validateStopLoss(String direction, double entryPrice, double stopLossPrice)
             throws TradeLogException {
-        if (direction.equals("long") && stopLossPrice > entryPrice) {
+        if (direction.equalsIgnoreCase("long") && stopLossPrice > entryPrice) {
             throw new TradeLogException(
                     "Invalid Trade: For a Long position, Stop Loss must be below Entry Price.");
         }
-        if (direction.equals("short") && stopLossPrice < entryPrice) {
+        if (direction.equalsIgnoreCase("short") && stopLossPrice < entryPrice) {
             throw new TradeLogException(
                     "Invalid Trade: For a Short position, Stop Loss must be above Entry Price.");
         }
-    }
-
-    /**
-     * Parses the trade outcome.
-     * Validates that the outcome is not empty.
-     *
-     * @param outcome The raw outcome string.
-     * @return The trimmed outcome string.
-     * @throws TradeLogException If the outcome is empty.
-     */
-    public static String parseOutcome(String outcome) throws TradeLogException {
-        if (outcome == null || outcome.trim().isEmpty()) {
-            throw new TradeLogException("Outcome cannot be empty.");
-        }
-        return outcome.trim();
     }
 }

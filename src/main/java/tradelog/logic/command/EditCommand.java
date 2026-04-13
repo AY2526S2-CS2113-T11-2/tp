@@ -89,9 +89,6 @@ public class EditCommand extends Command {
                 ? ParserUtil.parsePrice(parsedArgs.get("x/"), "Exit") : tradeToEdit.getExitPrice();
         double newStop = parsedArgs.containsKey("s/")
                 ? ParserUtil.parsePrice(parsedArgs.get("s/"), "Stop Loss") : tradeToEdit.getStopLossPrice();
-        String newOutcome = parsedArgs.containsKey("o/")
-                ? ParserUtil.parseOutcome(parsedArgs.get("o/"))
-                : tradeToEdit.getOutcome();
         String newStrat = parsedArgs.containsKey("strat/")
                 ? ParserUtil.parseStrategy(parsedArgs.get("strat/"))
                 : tradeToEdit.getStrategy();
@@ -101,8 +98,7 @@ public class EditCommand extends Command {
         ParserUtil.validatePrices(newEntry, newStop);
 
         // Step B: Ensure stop loss is on the correct side
-        // Note: teammate's validateStopLoss expects lowercase "long"/"short"
-        ParserUtil.validateStopLoss(newDir.toLowerCase(), newEntry, newStop);
+        ParserUtil.validateStopLoss(newDir, newEntry, newStop);
 
         // Save state only after all parsing/validation succeeds
         UndoCommand.saveState(tradeList);

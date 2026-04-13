@@ -19,6 +19,7 @@ public class ArgumentTokeniser {
      */
     public static HashMap<String, String> tokenise(String userInput, String[] prefixes)
             throws TradeLogException {
+        checkForUnknownPrefixes(userInput, prefixes);
         HashMap<String, String> argumentMap = new HashMap<>();
         String paddedInput = " " + userInput.trim().replaceAll("\\s+", " ");
         for (String prefix : prefixes) {
@@ -44,5 +45,36 @@ public class ArgumentTokeniser {
             }
         }
         return argumentMap;
+    }
+
+    /**
+     * Checks the user input for any prefixes that are not in the accepted list.
+     * A prefix is detected as any token containing "/" (e.g., "o/", "foo/").
+     *
+     * @param userInput The raw string of arguments.
+     * @param acceptedPrefixes The array of accepted prefixes.
+     * @throws TradeLogException If an unrecognised prefix is found.
+     */
+    public static void checkForUnknownPrefixes(String userInput, String[] acceptedPrefixes)
+            throws TradeLogException {
+        String[] tokens = userInput.trim().split("\\s+");
+        for (String token : tokens) {
+            int slashIndex = token.indexOf('/');
+            if (slashIndex <= 0) {
+                continue;
+            }
+            String prefix = token.substring(0, slashIndex + 1);
+            boolean isKnown = false;
+            for (String acceptedPrefix : acceptedPrefixes) {
+                if (acceptedPrefix.equals(prefix)) {
+                    isKnown = true;
+                    break;
+                }
+            }
+            if (!isKnown) {
+                throw new TradeLogException("Unrecognised prefix: " + prefix
+                        + " is not a valid tag.");
+            }
+        }
     }
 }
