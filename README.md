@@ -16,10 +16,11 @@ java -jar TradeLog.jar
 ## Main Features
 
 - Add, list, edit, and delete trades
-- Filter trades by ticker, strategy, and date
+- Filter trades by ticker or strategy
 - View overall performance summaries
 - Compare performance across strategies
 - Undo the most recent add, edit, or delete
+- Switch between `BACKTEST` and `LIVE` modes
 - Use supported strategy shortcuts such as `BB`, `PB`, and `MTR`, with canonical strategy normalization
 - Store data under the `data/` directory, with optional encryption controlled by the user
 

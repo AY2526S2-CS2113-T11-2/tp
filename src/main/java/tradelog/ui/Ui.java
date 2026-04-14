@@ -216,12 +216,12 @@ public class Ui {
 
     public String readPassword(String prompt) {
         System.out.print(prompt);
-        return scanner.hasNextLine() ? scanner.nextLine() : "";
+        return scanner.hasNextLine() ? scanner.nextLine() : null;
     }
 
     public String readLine(String prompt) {
         System.out.print(prompt);
-        return scanner.hasNextLine() ? scanner.nextLine().trim() : "";
+        return scanner.hasNextLine() ? scanner.nextLine().trim() : null;
     }
 
     public void showError(String message) {

@@ -45,13 +45,13 @@ TradeLog is optimized for users who can type quickly and prefer entering command
 - Words in `UPPER_CASE` are parameters to be supplied by the user.
   Example: in `add t/TICKER`, `TICKER` can be `AAPL`.
 - Items in square brackets are optional.
-  Example: `filter [-p] t/AAPL`
+  Example: `edit 2 x/205`
 - Parameters with prefixes can be written in any order.
   Example: `add t/AAPL d/2026-03-18 ...` and `add d/2026-03-18 t/AAPL ...` are both accepted.
 - Trade indices shown by the app are 1-based.
 - Strategy shortcuts such as `BB` and `PB` are expanded automatically.
-- For `strat/`, only the supported shortcuts or their supported full strategy names are accepted.
-  Matching is case-insensitive and stored in canonical form.
+- For strategy filtering, use `s/STRATEGY`.
+- Supported strategy names are matched case-insensitively and stored in canonical form.
 
 Current strategy shortcuts:
 
@@ -77,7 +77,7 @@ When TradeLog starts, it asks for a password before showing the command prompt.
 - If no existing profile matches, TradeLog asks whether you want to create a new profile.
 - Passwords cannot be blank.
 - Trades are saved automatically when you exit the program.
-- If the input stream ends unexpectedly, TradeLog still saves the current session before shutting down.
+- If the input stream ends unexpectedly, TradeLog still attempts to save the current session before shutting down.
 
 Trade data is stored in password-protected profile files inside the `data/` folder.
 Encryption is disabled by default and can be toggled with `encrypt`.
@@ -202,55 +202,41 @@ TradeLog first shows the deleted trade summary, then confirms the deletion.
 
 ### Filtering trades: `filter`
 
-Filters trades by ticker, strategy, and/or date.
+Filters trades by ticker or strategy.
 
 Format:
 
 ```text
-filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]
+filter t/TICKER
+filter s/STRATEGY
 ```
 
 Examples:
 
 ```text
 filter t/AAPL
-filter strat/Breakout d/2026-03
-filter -p t/AA
-filter strat/BB
+filter s/Breakout
+filter s/BB
 ```
 
 Current behavior:
 
-- At least one of `t/`, `strat/`, or `d/` must be provided.
-- Without `-p`, matching is exact.
-- With `-p`, matching becomes partial.
-- `strat/` must use a supported strategy shortcut or supported full strategy name.
+- `t/` filters trades by ticker using case-insensitive substring matching.
+- `s/` filters trades by strategy using exact case-insensitive matching after shortcut expansion.
 - Matching trades are shown using their original indices from the full trade list.
-- After showing the filtered trades, TradeLog also shows a summary for just those filtered results.
+- If no trades match, TradeLog shows `No trades found matching: ...`.
 
-Example output shape:
+Example output:
 
 ```text
 --------------------------------------------------------------------------------
 2. AAPL | 2026-03-18 | Long | E:150 | TP:165 | SL:140 | Win | Breakout
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-Overall Performance:
-
-Total Trades: 1
-Win Rate: 100%
-Average Win: 1.50R
-Average Loss: 0.00R
-Overall EV: +1.50R
-Total R: +1.50R
---------------------------------------------------------------------------------
 ```
-
-![Filter command showing matched trades and filtered summary](images/ug-filter-summary.png)
 
 Notes:
 
-- Strategy filters are validated first, so unsupported or misspelled strategy names are rejected.
+- Strategy filters use the `s/` prefix.
 - Strategy shortcuts such as `BB` are accepted and treated the same as their canonical names such as `Breakout`.
 
 ### Comparing strategies: `compare`
@@ -270,18 +256,18 @@ Example output:
 Strategy Comparison:
 
 Breakout:
-Trades: 2
-Win Rate: 50%
-Average Win: 2.00R
-Average Loss: 1.00R
-EV: +0.500R
+  Trades: 2
+  Win Rate: 50%
+  Average Win: 2.00R
+  Average Loss: 1.00R
+  EV: +0.500R
 
 Pullback:
-Trades: 1
-Win Rate: 100%
-Average Win: 1.50R
-Average Loss: 0.00R
-EV: +1.500R
+  Trades: 1
+  Win Rate: 100%
+  Average Win: 1.50R
+  Average Loss: 0.00R
+  EV: +1.500R
 
 --------------------------------------------------------------------------------
 ```
@@ -419,10 +405,11 @@ On exit, TradeLog shows the goodbye banner and then saves the current profile au
 | List trades          | `list`                                                                                        |
 | Edit trade           | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [strat/STRATEGY]` |
 | Delete trade         | `delete INDEX`                                                                                |
-| Filter trades        | `filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]`                                            |
+| Filter trades        | `filter t/TICKER`, `filter s/STRATEGY`                                                        |
 | Compare strategies   | `compare`                                                                                     |
 | View overall summary | `summary`                                                                                     |
 | Toggle encryption    | `encrypt on`, `encrypt off`, `encrypt status`                                                 |
 | Undo last change     | `undo`                                                                                        |
+| Switch mode          | `mode live`, `mode backtest`                                                                  |
 | Exit                 | `exit`                                                                                        |
 

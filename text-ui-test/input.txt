@@ -3,7 +3,7 @@ encrypt status
 add t/AAPL d/2026-02-18 dir/long e/180 x/190 s/170 strat/BB
 add t/TSLA d/2026-02-19 dir/short e/400 x/380 s/410 strat/pb
 list
-filter strat/Breakout
+filter s/Breakout
 compare
 edit 2 strat/MTR x/370
 undo

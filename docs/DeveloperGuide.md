@@ -318,62 +318,44 @@ The `EditCommandTest` class ensures that the "Read-Validate-Commit" cycle works 
 
 ##### Architecture-Level Description
 
-`FilterCommand` provides read-only querying of the in-memory `TradeList` without modifying any state. It supports filtering by up to three independent criteria — **ticker**, **strategy**, and **date** — applied as a logical AND. It also supports an optional **partial-match mode** (`-p` flag) that uses substring/case-insensitive matching instead of exact equality.
+`FilterCommand` provides read-only querying of the in-memory `TradeList` without modifying any state. In the current implementation, it supports ticker filtering and strategy filtering only.
 
-After displaying the matched trades, `FilterCommand` delegates to `SummaryCommand` on the filtered subset, giving the user performance metrics for just the filtered trades without any extra command.
-
-
-The constructor parses the argument string in two steps:
-
-1. `ArgumentTokeniser.tokenise` extracts the values for `t/`, `strat/`, and `d/`. Missing prefixes default to empty strings.
-2. If `strat/` is provided, it is validated through `ParserUtil.parseStrategy(...)`, which accepts only supported strategy shortcuts and supported canonical strategy names.
-3. The `-p` flag is detected by checking whether the raw argument array contains the literal string `"-p"`.
-4. If all three criteria are empty after parsing, a `TradeLogException` is thrown: at least one filter must be provided.
+The constructor stores the raw criteria string and performs lightweight strategy validation only when the argument starts with `s/`.
 
 The `execute` method:
 
 1. Iterates through all trades in `tradeList`.
-2. For each trade, evaluates three boolean conditions (`matchesTicker`, `matchesStrategy`, `matchesDate`). An empty criterion always evaluates to `true` (i.e., it is not applied).
-3. **Exact mode** (default): uses `equals` for ticker and date, `equalsIgnoreCase` for strategy.
-4. **Partial mode** (`-p`): uses `contains` for ticker and date. Strategy input is still validated first against the supported strategy set, and then matched case-insensitively against the canonical stored strategy name.
-5. Matching trades are collected into both an index list (for display with their original 1-based numbers) and a new `TradeList` (for the summary calculation).
-6. If no matches are found, `ui.showMessage("No trades match the filter criteria.")` is called.
-7. If matches are found, the matched trades are printed with their original indices, then `SummaryCommand.execute(filteredTrades, ui, storage)` is called on the subset.
+2. If the criteria starts with `s/`, expands a known shortcut such as `BB` to its canonical name before matching.
+3. Strategy filters use `equalsIgnoreCase` against the stored strategy.
+4. Non-strategy filters are treated as ticker searches and use case-insensitive substring matching.
+5. Matching trades are printed with their original indices via `Ui.printIndexedTrades(...)`.
+6. If no matches are found, `ui.showMessage("No trades found matching: ...")` is called.
 
 ##### Sequence Diagram — `filter t/AAPL` with two trades in list
 ![Filtering Trades Diagram](diagrams/filtering-trades-diagram.png)
 
 ##### Supported Filter Criteria
 
-| Prefix   | Field matched | Exact mode         | Partial mode (`-p`)                                                   |
-|----------|---------------|--------------------|-----------------------------------------------------------------------|
-| `t/`     | Ticker symbol | `equals`           | `contains`                                                            |
-| `strat/` | Strategy name | `equalsIgnoreCase` | validated first, then matched against the canonical strategy name     |
-| `d/`     | Trade date    | `equals`           | `contains` (useful for filtering by year or month, e.g., `d/2026-03`) |
+| Prefix / form | Field matched | Matching behavior |
+|---------------|---------------|-------------------|
+| `t/AAPL`      | Ticker symbol | Case-insensitive substring match |
+| `s/Breakout`  | Strategy name | Exact case-insensitive match after shortcut expansion |
 
 ##### Usage Examples
 
 ```
-filter t/AAPL                        → exact ticker match
-filter strat/Breakout d/2026-03      → trades with Breakout strategy in March 2026
-filter -p t/AA                       → all tickers containing "AA" (e.g., AAPL, AAVE)
-filter strat/BB                      → trades matching the canonical Breakout strategy
+filter t/AAPL     → trades whose ticker contains "AAPL"
+filter s/Breakout → trades stored with strategy Breakout
+filter s/BB       → trades matching the canonical Breakout strategy
 ```
 
 ##### Design Rationale
 
-**Why delegate the summary to `SummaryCommand` rather than duplicating the logic?**
-`SummaryCommand` already computes win rate, average win/loss, EV, and total R from a `TradeList`. Delegating avoids duplication and guarantees that the filtered-subset metrics stay consistent with the full-list metrics produced by `summary`.
-
 **Why use original 1-based indices (from the full list) when displaying filtered results?**
 Displaying the original index allows the user to immediately act on a filtered result — for example, using `edit 3` or `delete 3` on a trade found via `filter` without needing to re-run `list` to look up the index.
 
-**Why require at least one criterion instead of allowing `filter` with no arguments to return all trades?**
-`filter` with no criteria would be functionally identical to `list`. Requiring at least one criterion prevents accidental no-op calls and keeps the command's intent clear.
-
 **Alternatives considered:**
-- **Separate `filter-partial` command**: Rejected. Having `-p` as an inline flag keeps the command surface small and the user does not need to remember two separate command names.
-- **Chained filter pipeline (filter feeds into another filter)**: Rejected because the current AND-of-criteria design already handles the implemented use cases while keeping the command model simple.
+- **A richer multi-prefix filter syntax**: Considered, but the current implementation keeps the command simple and focused on the supported use cases.
 
 ---
 
@@ -811,10 +793,10 @@ Strict adherence to the synchronous execution model ensures that no message is l
 2. Verify that the trade summary is printed and the strategy is shown as `Breakout`, not `BB`.
 3. Run: `add t/TSLA d/2026-03-19 dir/short e/200 x/190 s/210 strat/PB`
 4. Verify that the second trade is added successfully and the strategy is shown as `Pullback`.
-5. Run: `filter strat/Breakout`
-6. Verify that only the `Breakout` trade is shown and that a filtered summary is printed below it.
-7. Run: `filter -p t/AP`
-8. Verify that the same `Breakout` trade is matched using partial ticker matching.
+5. Run: `filter s/Breakout`
+6. Verify that only the `Breakout` trade is shown.
+7. Run: `filter t/AP`
+8. Verify that the same `Breakout` trade is matched by ticker substring.
 9. Run: `compare`
 10. Verify that `Breakout` and `Pullback` appear as separate strategy blocks with their own trade counts and metrics.
 11. Run: `add t/MSFT d/2026-03-20 dir/long e/100 x/120 s/90 strat/breakout`
