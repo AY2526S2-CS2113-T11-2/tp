@@ -84,7 +84,7 @@ Trade successfully added
 ### Contributions to the Developer Guide (Extracts)
 The following is an extract from my section in the Developer Guide explaining the AddCommand architecture I designed.
 
-### 2.7 AddCommand
+#### 2.7 AddCommand
 
 ##### Architecture-Level Description
 
