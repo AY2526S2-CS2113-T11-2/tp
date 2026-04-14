@@ -424,6 +424,6 @@ On exit, TradeLog shows the goodbye banner and then saves the current profile au
 | View overall summary     | `summary`                                                                                     |
 | Toggle encryption        | `encrypt on`, `encrypt off`, `encrypt status`                                                 |
 | Undo last change         | `undo`                                                                                        |
-| Switch environment modes | `mode`                                                                                        |
+| Switch environment modes | `mode MODE`                                                                                   |
 | Exit                     | `exit`                                                                                        |
 
