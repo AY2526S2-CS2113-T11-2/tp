@@ -192,16 +192,22 @@ public class AddCommandTest {
 
     /**
      * Tests that adding a past trade in LIVE mode throws a TradeLogException.
+     * Note: The validation happens in the constructor via ParserUtil.
      */
     @Test
-    public void execute_liveModePastDate_throwsTradeLogException() throws TradeLogException {
+    public void execute_liveModePastDate_throwsTradeLogException() {
+        // Set to LIVE mode BEFORE creating the command
         ModeManager.getInstance().setLive(true);
-        String pastDateArgs = " t/TSLA d/2020-01-01 dir/long e/100 x/110 s/90 strat/BB";
-        AddCommand command = new AddCommand(pastDateArgs);
 
+        String pastDateArgs = " t/TSLA d/2020-01-01 dir/long e/100 x/110 s/90 strat/BB";
+
+        // The constructor itself will throw the exception due to ParserUtil validation
         TradeLogException exception = assertThrows(TradeLogException.class,
-                () -> command.execute(tradeList, dummyUi, dummyStorage));
-        assertTrue(exception.getMessage().contains("LIVE Mode: Only today's trades can be added"));
+                () -> new AddCommand(pastDateArgs));
+
+        // Match the actual message returned by your ParserUtil
+        assertTrue(exception.getMessage().contains("Live mode only allows trades for today"),
+                "Exception message should explain Live mode date restrictions.");
     }
 
     /**
@@ -210,11 +216,16 @@ public class AddCommandTest {
     @Test
     public void execute_liveModeTodayDate_addsSuccessfully() throws TradeLogException {
         ModeManager.getInstance().setLive(true);
+
+        // Use the current date to satisfy Live mode requirements
         String today = LocalDate.now().toString();
         String todayArgs = " t/NVDA d/" + today + " dir/short e/500 x/480 s/510 strat/Breakout";
+
+        // Ensure constructor succeeds
         AddCommand command = new AddCommand(todayArgs);
 
+        // Ensure execution succeeds
         assertDoesNotThrow(() -> command.execute(tradeList, dummyUi, dummyStorage));
-        assertEquals(1, tradeList.size());
+        assertEquals(1, tradeList.size(), "Trade should be added successfully for today's date in Live mode.");
     }
 }
