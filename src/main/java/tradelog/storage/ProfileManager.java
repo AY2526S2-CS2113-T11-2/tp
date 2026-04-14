@@ -23,6 +23,13 @@ public class ProfileManager {
                     ? "\n Enter password to load your profile (or create a new one): "
                     : "\n No profiles found. Create a new password: ";
             String password = ui.readPassword(prompt);
+            if (password == null) {
+                throw new IllegalStateException("Input closed during profile selection.");
+            }
+            if (password.trim().isEmpty()) {
+                ui.showError("Password cannot be empty.");
+                continue;
+            }
 
             if (!anyProfileExists) {
                 createNewProfile(baseDir, baseName, password, ui,
@@ -37,6 +44,9 @@ public class ProfileManager {
             String confirm = ui.readLine(
                     "\n No profile found for the entered password."
                     + " Create a new profile? (yes/no): ");
+            if (confirm == null) {
+                throw new IllegalStateException("Input closed during profile selection.");
+            }
             if (confirm.equalsIgnoreCase("yes")) {
                 createNewProfile(baseDir, baseName, password, ui, "\n Creating new profile...");
                 break;

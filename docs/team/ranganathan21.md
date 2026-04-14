@@ -2,38 +2,13 @@
 
 ## Project: TradeLog
 
-TradeLog is a desktop application for traders who prefer using a CLI. It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in encrypted local profiles.
-
-Given below are my contributions to the project.
+TradeLog is a desktop application for traders who prefer using a CLI. It allows users to log trades, review performance in `R` multiples, compare strategy results, and store their data in password-protected local profiles.
 
 ### Features implemented
 
-1. Added the list/display workflow and core UI behavior.
-
-What it does: provides the `list` command and the full shared UI layer used to present trades, summaries, comparison output, undo feedback, and error messages in a consistent CLI format.
-
-Justification: This was foundational to the product because nearly all user-facing features depend on clear, consistent output and a stable application flow.
-
-Highlights: I implemented `ListCommand`, the `Command` abstraction, key parts of the `TradeLog` run loop, and the `Ui` class. This work also included defensive assertions, logging, and test coverage for `Ui`, `ListCommand`, and related command behavior.
-Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25)
-
-2. Added strategy shortcut support.
-
-What it does: allows users to enter supported short strategy codes such as `BB`, `PB`, and `MTR`, or supported full strategy names, which are validated and normalized into canonical stored strategy names.
-
-Justification: This improves the product because frequent users can log trades faster while the app still stores normalized strategy names for filtering and comparison.
-
-Highlights: I implemented this in `ParserUtil` and integrated it into the parsing flow used by `add`, `edit`, and `filter`, while also ensuring `compare` groups known case variants under the same canonical strategy name. I updated the welcome UI to display the supported shortcuts, and added regression and unit tests for the shortcut behavior.
-Relevant PR: [#44](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/44)
-
-3. Added strategy comparison analytics.
-
-What it does: adds a `compare` command that groups trades by strategy and shows trade count, win rate, average win, average loss, and EV for each strategy.
-
-Justification: This improves the product because traders need to compare strategies directly instead of relying only on an overall summary.
-
-Highlights: I implemented this through `CompareCommand` and `StrategyStats` using a single-pass aggregation approach. The feature also required parser routing, UI rendering, tests, and documentation updates.
-Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46)
+1. **List/display workflow and shared UI**: implemented `ListCommand`, the `Command` abstraction, key parts of the `TradeLog` run loop, and the shared `Ui` used for trade display, summaries, undo feedback, and errors. This established the product's common CLI output style, centralized formatting logic, and later included bug-fix work around output formatting, startup handling, and run-loop reliability. Relevant PRs: [#9](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/9), [#10](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/10), [#19](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/19), [#25](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/25), [#26](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/26), [#27](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/27), [#129](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/129), [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
+2. **Strategy shortcut support**: implemented canonical parsing and validation for shortcut inputs such as `BB`, `PB`, and `MTR`, and integrated them into `add`, `edit`, `filter`, and related tests. This improved logging speed while keeping stored strategy names normalized for filtering, comparison, and future maintenance. Relevant PR: [#44](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/44).
+3. **Strategy comparison analytics**: implemented `compare` using `CompareCommand` and `StrategyStats` to show per-strategy trade count, win rate, average win, average loss, and EV. The implementation uses single-pass aggregation and canonicalized strategy names so variants do not split into separate groups, and it is supported by targeted tests and documentation. Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46).
 
 ### Code contributed
 
@@ -41,41 +16,21 @@ Relevant PR: [#46](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/46)
 
 ### Documentation
 
-#### User Guide:
-
-- Reworked the User Guide into an AB3-style structure.
-- Documented the current command format and feature set more precisely.
-- Updated the sections for strategy shortcuts, `filter`, and `compare`.
-- Marked unimplemented features clearly as `Coming soon`.
-
-#### Developer Guide:
-
-- Added and updated documentation for the UI component and `ListCommand`.
-- Documented the strategy shortcut workflow and the strategy comparison feature.
-- Updated the manual testing section so implemented v1 and v2 features are covered clearly.
-- Cleaned up outdated DG wording so it matches the current product behavior.
+- **User Guide**: reworked the UG into an AB3-style structure, updated command documentation, and kept the sections for strategy shortcuts, `filter`, `compare`, encryption, and startup/save behavior aligned with the product.
+- **Developer Guide**: documented the UI component, `ListCommand`, the strategy shortcut workflow, the `compare` feature, and the manual testing steps for the implemented features.
+- **Project Portfolio Page**: updated my PPP to reflect the final implemented scope and linked PR history.
+- These updates were aimed at keeping the docs aligned with the actual product instead of planned or outdated behavior, which reduced mismatch bugs during peer testing.
 
 ### Diagrams
 
-Added or updated the following UML diagrams:
-
-- `ui-print-trade-list-sequence`
-- `list-command-sequence`
-- `list-command-logic-diagram`
-- `strategy-shortcut-add-sequence`
-- `compare-sequence`
-- `compare-class-diagram`
-- `compare-object-diagram`
+Added or updated: `ui-print-trade-list-sequence`, `list-command-sequence`, `list-command-logic-diagram`, `strategy-shortcut-add-sequence`, `compare-sequence`, `compare-class-diagram`, `compare-object-diagram`.
 
 ### Team-based tasks
 
-- Helped maintain consistent CLI output and command flow across user-facing features.
-- Helped align the UG and DG with the implemented behavior as the product evolved.
-- Contributed to test coverage for both unit tests and text UI regression tests.
-- Contributed documentation and release-readiness updates in [#30](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/30), [#34](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/34), [#36](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/36), [#39](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/39) and [#62](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/62).
+- Helped maintain consistent CLI output, documentation, and test coverage across the project.
+- Contributed project setup, documentation, release-readiness, and integration work in [#3](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/3), [#30](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/30), [#31](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/31), [#34](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/34), [#36](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/36), [#39](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/39), [#62](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/62), and [#136](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/136).
+- Took part in final bug-fix and verification work to reduce peer-testing issues in the user-facing parts of the app.
 
 ### Review/mentoring contributions
 
-- Reviewed teammates' changes during integration and helped catch behavior-documentation mismatches.
-- Helped refine examples, manual test steps, and feature descriptions so they matched the actual implementation more closely.
-- Reviewed and/or approved pull requests such as [#11](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/11), [#16](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/16), [#17](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/17), [#21](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/21), [#28](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/28), [#32](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/32), [#35](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/35), [#43](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/43), [#59](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/59), and [#60](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/60).
+- Reviewed teammates' changes during integration, helped catch behavior-documentation mismatches, and approved PRs such as [#11](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/11), [#16](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/16), [#17](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/17), [#21](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/21), [#28](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/28), [#32](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/32), [#35](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/35), [#43](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/43), [#59](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/59), [#60](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/60), [#77](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/77), [#132](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/132), and [#134](https://github.com/AY2526S2-CS2113-T11-2/tp/pull/134).

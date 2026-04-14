@@ -8,7 +8,9 @@ import tradelog.model.ModeManager; // Added import
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,9 +23,12 @@ class TradeLogTest {
     private String captureOutput(Runnable action) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
-        System.setOut(new PrintStream(buffer));
-        action.run();
-        System.setOut(original);
+        try {
+            System.setOut(new PrintStream(buffer));
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
         return buffer.toString();
     }
 
@@ -97,11 +102,30 @@ class TradeLogTest {
      */
     @Test
     public void run_setModeCommand_showsModeTransition() {
+        // password -> mode switch -> exit
         String modeInput = "testpassword\nsetmode live\nexit\n";
         System.setIn(new ByteArrayInputStream(modeInput.getBytes()));
+        
         String output = captureOutput(() -> new TradeLog(tempDir.toString(), "trades").run());
 
         assertTrue(output.contains("Switched to LIVE mode"));
         assertTrue(output.contains("Daily Loss Limit"), "Should show LIVE mode warnings.");
+    }
+
+    /**
+     * Verifies that trades are saved even if the user does not explicitly 
+     * type 'exit' (end of input stream).
+     */
+    @Test
+    public void run_endOfInputWithoutExit_savesTradesBeforeShutdown() throws IOException {
+        String addInput = "testpassword\nadd t/AAPL d/2026-02-18 dir/long"
+                + " e/180 x/190 s/170 strat/Breakout\n";
+        System.setIn(new ByteArrayInputStream(addInput.getBytes()));
+
+        captureOutput(() -> new TradeLog(tempDir.toString(), "trades").run());
+      
+        String savedContent = Files.readString(tempDir.resolve("trades.txt"));
+        assertTrue(savedContent.contains("AAPL"));
+    }
     }
 }

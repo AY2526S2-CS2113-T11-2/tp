@@ -1,6 +1,7 @@
 package tradelog.logic.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
@@ -105,7 +106,7 @@ public class CompareCommandTest {
         assertEquals(66.667, breakoutStats.getWinRate(), 0.001);
     }
 
-    // Added ModeManager Assertions
+// Added ModeManager Assertions
 
     /**
      * Verifies that CompareCommand works correctly regardless of whether LIVE mode is active,
@@ -121,5 +122,33 @@ public class CompareCommandTest {
         command.execute(tradeList, mockUi, dummyStorage);
 
         assertEquals(1, mockUi.capturedComparison.size(), "CompareCommand should work in LIVE mode.");
+        
+        //avoid data race
+        ModeManager.getInstance().setLive(false);
     }
-}
+
+    @Test
+    public void execute_spacingVariantKnownStrategy_groupsTradesUnderCanonicalName() {
+        tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long",
+                100, 120, 90, "  Major   Trend Reversal  "));
+        tradeList.addTrade(new Trade("TSLA", "2026-03-02", "Long",
+                100, 95, 90, "mtr"));
+
+        CompareCommand command = new CompareCommand();
+        command.execute(tradeList, mockUi, dummyStorage);
+
+        assertEquals(1, mockUi.capturedComparison.size());
+        assertNotNull(mockUi.capturedComparison.get("Major Trend Reversal"));
+    }
+
+    @Test
+    public void execute_unknownStoredStrategy_preservesTrimmedLegacyName() {
+        tradeList.addTrade(new Trade("AAPL", "2026-03-01", "Long",
+                100, 120, 90, "  Legacy Setup  "));
+
+        CompareCommand command = new CompareCommand();
+        command.execute(tradeList, mockUi, dummyStorage);
+
+        assertEquals(1, mockUi.capturedComparison.size());
+        assertNotNull(mockUi.capturedComparison.get("Legacy Setup"));
+    }
