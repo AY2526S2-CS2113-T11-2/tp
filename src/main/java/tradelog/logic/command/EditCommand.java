@@ -20,7 +20,7 @@ public class EditCommand extends Command {
 
     /** All possible prefixes that can be used for editing. */
     private static final String[] ACCEPTED_PREFIXES = {
-            "t/", "d/", "dir/", "e/", "x/", "s/", "strat/"
+        "t/", "d/", "dir/", "e/", "x/", "s/", "strat/"
     };
 
     private final int targetIndex;
