@@ -413,16 +413,17 @@ On exit, TradeLog shows the goodbye banner and then saves the current profile au
 
 ## Command summary
 
-| Action               | Format                                                                                        |
-|----------------------|-----------------------------------------------------------------------------------------------|
-| Add trade            | `add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP strat/STRATEGY`                      |
-| List trades          | `list`                                                                                        |
-| Edit trade           | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [strat/STRATEGY]` |
-| Delete trade         | `delete INDEX`                                                                                |
-| Filter trades        | `filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]`                                            |
-| Compare strategies   | `compare`                                                                                     |
-| View overall summary | `summary`                                                                                     |
-| Toggle encryption    | `encrypt on`, `encrypt off`, `encrypt status`                                                 |
-| Undo last change     | `undo`                                                                                        |
-| Exit                 | `exit`                                                                                        |
+| Action                   | Format                                                                                        |
+|--------------------------|-----------------------------------------------------------------------------------------------|
+| Add trade                | `add t/TICKER d/DATE dir/DIRECTION e/ENTRY x/EXIT s/STOP strat/STRATEGY`                      |
+| List trades              | `list`                                                                                        |
+| Edit trade               | `edit INDEX [t/TICKER] [d/DATE] [dir/DIRECTION] [e/ENTRY] [x/EXIT] [s/STOP] [strat/STRATEGY]` |
+| Delete trade             | `delete INDEX`                                                                                |
+| Filter trades            | `filter [-p] [t/TICKER] [strat/STRATEGY] [d/DATE]`                                            |
+| Compare strategies       | `compare`                                                                                     |
+| View overall summary     | `summary`                                                                                     |
+| Toggle encryption        | `encrypt on`, `encrypt off`, `encrypt status`                                                 |
+| Undo last change         | `undo`                                                                                        |
+| Switch environment modes | `mode MODE`                                                                                   |
+| Exit                     | `exit`                                                                                        |
 
