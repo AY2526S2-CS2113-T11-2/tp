@@ -122,7 +122,7 @@ public class CompareCommandTest {
         command.execute(tradeList, mockUi, dummyStorage);
 
         assertEquals(1, mockUi.capturedComparison.size(), "CompareCommand should work in LIVE mode.");
-        
+
         //avoid data race
         ModeManager.getInstance().setLive(false);
     }
@@ -152,3 +152,4 @@ public class CompareCommandTest {
         assertEquals(1, mockUi.capturedComparison.size());
         assertNotNull(mockUi.capturedComparison.get("Legacy Setup"));
     }
+}
